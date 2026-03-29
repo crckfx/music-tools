@@ -1,0 +1,179 @@
+/* ===========================
+   HOMEPAGE LAYOUT
+   Imports base.css for tokens/reset.
+   Overrides overflow: hidden from base since
+   this page can scroll if cards grow.
+=========================== */
+html, body {
+    overflow: auto;
+}
+
+/* ===========================
+   PAGE STRUCTURE
+=========================== */
+.page {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background-image:
+        radial-gradient(ellipse 70% 40% at 50% 100%, rgba(124,106,247,0.07) 0%, transparent 70%);
+}
+
+/* ===========================
+   HERO
+=========================== */
+.hero {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 80px 24px 56px;
+    text-align: center;
+    gap: 14px;
+}
+
+.hero-eyebrow {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.35em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+}
+
+.hero-title {
+    font-family: var(--font-mono);
+    font-size: clamp(2.4rem, 8vw, 5rem);
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    color: var(--white);
+    line-height: 1;
+}
+
+.hero-title span {
+    color: var(--accent);
+}
+
+.hero-sub {
+    font-size: 0.85rem;
+    color: var(--text-dim);
+    letter-spacing: 0.1em;
+    max-width: 380px;
+    line-height: 1.6;
+}
+
+/* ===========================
+   TOOL GRID
+=========================== */
+.tool-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 16px;
+    padding: 0 24px 80px;
+    max-width: 1000px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+/* ===========================
+   TOOL CARD
+=========================== */
+.tool-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    padding: 28px 28px 24px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    text-decoration: none;
+    color: var(--text);
+    overflow: hidden;
+    transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
+    gap: 10px;
+}
+
+.tool-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse 80% 60% at 50% 120%,
+        var(--card-accent-glow) 0%, transparent 70%);
+    opacity: 0;
+    transition: opacity 0.3s;
+    pointer-events: none;
+}
+
+.tool-card:hover {
+    border-color: var(--card-accent);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4), 0 0 0 1px var(--card-accent);
+}
+
+.tool-card:hover::before {
+    opacity: 1;
+}
+
+.tool-card:active {
+    transform: translateY(0);
+}
+
+.card-tag {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--card-accent);
+    opacity: 0.8;
+}
+
+.card-title {
+    font-family: var(--font-mono);
+    font-size: 1.4rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    color: var(--white);
+}
+
+.card-desc {
+    font-size: 0.82rem;
+    color: var(--text-dim);
+    line-height: 1.65;
+    flex: 1;
+}
+
+.card-arrow {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--card-accent);
+    letter-spacing: 0.1em;
+    margin-top: 8px;
+    opacity: 0;
+    transform: translateX(-4px);
+    transition: opacity 0.2s, transform 0.2s;
+}
+
+.tool-card:hover .card-arrow {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+/* Card accent colours — set per card via inline style vars */
+.tool-card {
+    --card-accent:      #7c6af7;
+    --card-accent-glow: rgba(124,106,247,0.12);
+}
+
+/* ===========================
+   FOOTER
+=========================== */
+.site-footer {
+    margin-top: auto;
+    padding: 20px 24px;
+    border-top: 1px solid var(--border);
+    text-align: center;
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.2em;
+    color: var(--text-dim);
+    opacity: 0.5;
+}

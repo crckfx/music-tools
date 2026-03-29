@@ -3,20 +3,67 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>v5</title>
-    <style>
-        body { font-family: sans-serif; padding: 24px; }
-        ul { line-height: 2; }
-    </style>
+    <title>music-tools</title>
+    <link rel="stylesheet" href="./base.css">
+    <link rel="stylesheet" href="./index.css">
 </head>
 <body>
-    <h2>v5</h2>
-    <ul>
-        <li><a href="scales/">Scales</a></li>
-        <li><a href="chords/">Chords</a></li>
-        <li><a href="playable/">Playable</a></li>
-        <li><a href="synth/">Synth</a></li>
-        <li><a href="sampler/">Sampler</a></li>
-    </ul>
+
+<div class="page">
+
+    <section class="hero">
+        <p class="hero-eyebrow">web audio · midi · synthesis</p>
+        <h1 class="hero-title">music<span>-</span>tools</h1>
+        <p class="hero-sub">a collection of browser-based music interfaces built around a shared piano widget</p>
+    </section>
+
+    <nav class="tool-grid">
+
+        <a class="tool-card" href="./synth/"
+           style="--card-accent:#7c6af7; --card-accent-glow:rgba(124,106,247,0.12)">
+            <span class="card-tag">web audio · synthesis</span>
+            <span class="card-title">SYNTH</span>
+            <p class="card-desc">Polyphonic triangle wave with a full ADSR envelope. Touch-optimised playable surface with per-note voice management.</p>
+            <span class="card-arrow">open →</span>
+        </a>
+
+        <a class="tool-card" href="./sampler/"
+           style="--card-accent:#e8a045; --card-accent-glow:rgba(232,160,69,0.12)">
+            <span class="card-tag">soundfont · samples</span>
+            <span class="card-title">SAMPLER</span>
+            <p class="card-desc">Acoustic grand piano via MusyngKite soundfont. Real sample playback with natural decay over the same playable interface.</p>
+            <span class="card-arrow">open →</span>
+        </a>
+
+        <a class="tool-card" href="./scales/"
+           style="--card-accent:#4caf8a; --card-accent-glow:rgba(76,175,138,0.12)">
+            <span class="card-tag">theory · visualiser</span>
+            <span class="card-title">SCALES</span>
+            <p class="card-desc">Visualise major, minor and harmonic minor scales across any root note. Marks scale degrees with note names directly on the keys.</p>
+            <span class="card-arrow">open →</span>
+        </a>
+
+        <a class="tool-card" href="./chords/"
+           style="--card-accent:#e05c7a; --card-accent-glow:rgba(224,92,122,0.12)">
+            <span class="card-tag">coming soon</span>
+            <span class="card-title">CHORDS</span>
+            <p class="card-desc">Keyboard-as-selector. Click notes on and off to build a chord; the widget identifies and names what you've played.</p>
+            <span class="card-arrow">open →</span>
+        </a>
+
+        <a class="tool-card" href="./playable/"
+           style="--card-accent:#6ab0e0; --card-accent-glow:rgba(106,176,224,0.12)">
+            <span class="card-tag">interaction · demo</span>
+            <span class="card-title">PLAYABLE</span>
+            <p class="card-desc">Bare playable surface without audio. Demonstrates multi-touch pointer handling and slide-between-keys behaviour.</p>
+            <span class="card-arrow">open →</span>
+        </a>
+
+    </nav>
+
+    <footer class="site-footer">music-tools · built with web audio api · PianoWidget</footer>
+
+</div>
+
 </body>
 </html>
