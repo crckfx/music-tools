@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scales</title>
+    <style>
+        body { font-family: sans-serif; padding: 16px; }
+        label  { margin-right: 6px; }
+        select { margin-right: 16px; }
+
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .shift-group {
+            display: flex;
+            gap: 4px;
+            margin-left: auto;
+        }
+
+        .shift-group button {
+            padding: 4px 10px;
+            font-size: 0.85rem;
+            cursor: pointer;
+        }
+
+        #container {
+            width: 100%;
+            max-width: 900px;
+            overflow-x: auto;
+            border: 1px solid #444;
+        }
+        canvas { display: block; touch-action: none; }
+    </style>
+</head>
+<body>
+    <p><a href="../">← back</a></p>
+    <h2>Scales</h2>
+
+    <div class="controls">
+        <label for="root">Root:</label>
+        <select id="root"></select>
+
+        <label for="scale">Scale:</label>
+        <select id="scale"></select>
+
+        <div class="shift-group">
+            <button id="shift-oct-down">− oct</button>
+            <button id="shift-semi-down">− semi</button>
+            <button id="shift-semi-up">+ semi</button>
+            <button id="shift-oct-up">+ oct</button>
+        </div>
+    </div>
+
+    <div id="container">
+        <canvas id="piano"></canvas>
+    </div>
+
+    <script type="module" src="./scales.js"></script>
+</body>
+</html>

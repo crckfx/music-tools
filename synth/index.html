@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Synth</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- Start overlay — sits above everything until dismissed -->
+    <div id="start-overlay">
+        <div class="overlay-inner">
+            <div class="overlay-label">triangle wave</div>
+            <h1 class="overlay-title">SYNTH</h1>
+            <p class="overlay-sub">touch-optimised · polyphonic · web audio</p>
+            <button id="start-btn">
+                <span class="btn-ring"></span>
+                START
+            </button>
+        </div>
+    </div>
+
+    <!-- App — rendered behind overlay from load, revealed on start -->
+    <div id="app">
+        <header id="app-header">
+            <a href="../" class="back-link">← back</a>
+            <span class="app-title">SYNTH</span>
+            <span class="range-label" id="range-label"></span>
+        </header>
+
+        <main id="app-main">
+            <div class="stage">
+                <div class="stage-glow"></div>
+
+                <div class="nudge-row">
+                    <div class="nudge-group">
+                        <button class="nudge-btn" id="oct-down" title="Octave down">−8va</button>
+                        <button class="nudge-btn" id="semi-down" title="Semitone down">−♩</button>
+                    </div>
+                    <div class="nudge-group">
+                        <button class="nudge-btn" id="semi-up" title="Semitone up">+♩</button>
+                        <button class="nudge-btn" id="oct-up" title="Octave up">+8va</button>
+                    </div>
+                </div>
+
+                <div id="container">
+                    <canvas id="piano"></canvas>
+                </div>
+
+                <div class="live-indicator">
+                    <span class="live-dot"></span>
+                    <span class="live-text">LIVE</span>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script type="module" src="main.js"></script>
+</body>
+</html>

@@ -1,0 +1,337 @@
+/* ===========================
+   RESET & BASE
+=========================== */
+*, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+:root {
+    --bg:           #08080f;
+    --bg-surface:   #0f0f1a;
+    --bg-raised:    #16162a;
+    --accent:       #7c6af7;
+    --accent-dim:   #4a3fa3;
+    --accent-glow:  rgba(124, 106, 247, 0.18);
+    --text:         #dcdcec;
+    --text-dim:     #6a6a8a;
+    --border:       #2a2a40;
+    --border-light: #3a3a55;
+    --white:        #f0f0f8;
+    --radius-sm:    6px;
+    --radius-md:    12px;
+    --radius-lg:    24px;
+    --font-mono:    'Courier New', Courier, monospace;
+    --font-sans:    system-ui, -apple-system, sans-serif;
+}
+
+html, body {
+    height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-sans);
+    overflow: hidden; /* app fills viewport */
+}
+
+/* ===========================
+   START OVERLAY
+=========================== */
+#start-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg);
+    /* layered radial to give depth */
+    background-image:
+        radial-gradient(ellipse 60% 50% at 50% 80%, rgba(124,106,247,0.12) 0%, transparent 70%),
+        radial-gradient(ellipse 40% 30% at 50% 100%, rgba(124,106,247,0.08) 0%, transparent 60%);
+    transition: opacity 0.55s ease;
+}
+
+#start-overlay.fade-out {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.overlay-inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    text-align: center;
+    user-select: none;
+}
+
+.overlay-label {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--accent);
+    opacity: 0.8;
+}
+
+.overlay-title {
+    font-family: var(--font-mono);
+    font-size: clamp(3.5rem, 14vw, 7rem);
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    color: var(--white);
+    line-height: 1;
+    text-shadow: 0 0 60px rgba(124,106,247,0.5);
+}
+
+.overlay-sub {
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    letter-spacing: 0.15em;
+    margin-top: 4px;
+    margin-bottom: 20px;
+}
+
+#start-btn {
+    position: relative;
+    padding: 16px 52px;
+    background: transparent;
+    border: 2px solid var(--accent);
+    border-radius: var(--radius-lg);
+    color: var(--white);
+    font-family: var(--font-mono);
+    font-size: 1rem;
+    letter-spacing: 0.35em;
+    cursor: pointer;
+    transition: background 0.2s, box-shadow 0.2s, transform 0.1s;
+    overflow: visible;
+}
+
+#start-btn:hover {
+    background: var(--accent-glow);
+    box-shadow: 0 0 30px rgba(124,106,247,0.35);
+}
+
+#start-btn:active {
+    transform: scale(0.97);
+}
+
+/* pulsing ring around start button */
+.btn-ring {
+    position: absolute;
+    inset: -8px;
+    border-radius: calc(var(--radius-lg) + 8px);
+    border: 1px solid rgba(124,106,247,0.3);
+    animation: ring-pulse 2.4s ease-in-out infinite;
+    pointer-events: none;
+}
+
+@keyframes ring-pulse {
+    0%, 100% { opacity: 0.2; transform: scale(1); }
+    50%       { opacity: 0.7; transform: scale(1.04); }
+}
+
+/* ===========================
+   APP LAYOUT
+=========================== */
+#app {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    opacity: 0;
+    transition: opacity 0.5s ease 0.1s;
+}
+
+#app.visible {
+    opacity: 1;
+}
+
+/* ===========================
+   HEADER
+=========================== */
+#app-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+}
+
+.back-link {
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    text-decoration: none;
+    letter-spacing: 0.05em;
+    transition: color 0.15s;
+}
+.back-link:hover { color: var(--text); }
+
+.app-title {
+    font-family: var(--font-mono);
+    font-size: 0.9rem;
+    letter-spacing: 0.4em;
+    color: var(--accent);
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.range-label {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--text-dim);
+    letter-spacing: 0.1em;
+    min-width: 60px;
+    text-align: right;
+}
+
+/* ===========================
+   MAIN / STAGE
+=========================== */
+#app-main {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px 16px;
+    overflow: hidden;
+}
+
+.stage {
+    position: relative;
+    width: 100%;
+    max-width: 960px;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+}
+
+/* atmospheric glow behind piano */
+.stage-glow {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 110%;
+    height: 220px;
+    background: radial-gradient(ellipse at bottom center,
+        rgba(124,106,247,0.16) 0%,
+        rgba(124,106,247,0.04) 45%,
+        transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* ===========================
+   NUDGE CONTROLS
+=========================== */
+.nudge-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 2px;
+    margin-bottom: 14px;
+    position: relative;
+    z-index: 1;
+}
+
+.nudge-group {
+    display: flex;
+    gap: 6px;
+}
+
+.nudge-btn {
+    padding: 8px 16px;
+    background: var(--bg-raised);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-sm);
+    color: var(--text-dim);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    transition: color 0.15s, border-color 0.15s, background 0.15s, box-shadow 0.15s;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.nudge-btn:hover {
+    color: var(--text);
+    border-color: var(--accent-dim);
+    background: var(--bg-surface);
+}
+
+.nudge-btn:active {
+    background: var(--accent-glow);
+    border-color: var(--accent);
+    color: var(--white);
+    box-shadow: 0 0 12px rgba(124,106,247,0.25);
+}
+
+/* ===========================
+   PIANO CONTAINER
+=========================== */
+#container {
+    width: 100%;
+    overflow: hidden; /* no scroll — touch-action:none + nudge is the UX */
+    border-radius: var(--radius-sm);
+    box-shadow:
+        0 0 0 1px var(--border-light),
+        0 0 40px rgba(0,0,0,0.6),
+        0 0 80px rgba(124,106,247,0.06);
+    position: relative;
+    z-index: 1;
+}
+
+canvas {
+    display: block;
+}
+
+/* ===========================
+   LIVE INDICATOR
+=========================== */
+.live-indicator {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    margin-top: 16px;
+    position: relative;
+    z-index: 1;
+}
+
+.live-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+    animation: live-blink 2s ease-in-out infinite;
+    box-shadow: 0 0 8px var(--accent);
+}
+
+@keyframes live-blink {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0.35; }
+}
+
+.live-text {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.3em;
+    color: var(--accent);
+    opacity: 0.7;
+}
+
+/* ===========================
+   RESPONSIVE
+=========================== */
+@media (max-height: 500px) {
+    /* landscape mobile: tighten everything */
+    #app-header { padding: 10px 20px; }
+    #app-main   { padding: 12px 12px; }
+    .nudge-row  { margin-bottom: 10px; }
+    .live-indicator { margin-top: 10px; }
+}
