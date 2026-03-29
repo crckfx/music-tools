@@ -1,0 +1,6 @@
+/* sampler accent: warm amber */
+:root {
+    --accent:      #e8a045;
+    --accent-dim:  #a06820;
+    --accent-glow: rgba(232, 160, 69, 0.18);
+}
