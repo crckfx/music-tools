@@ -4,63 +4,105 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Scales</title>
+    <link rel="stylesheet" href="../base.css">
+    <link rel="stylesheet" href="./style.css">
     <style>
-        body { font-family: sans-serif; padding: 16px; }
-        label  { margin-right: 6px; }
-        select { margin-right: 16px; }
+        /* scales-specific layout — no overflow:hidden, page can scroll */
+        html, body { overflow: auto; }
 
-        .controls {
+        .controls-row {
             display: flex;
             flex-wrap: wrap;
             align-items: center;
-            gap: 8px;
-            margin-bottom: 12px;
+            gap: 10px;
         }
 
-        .shift-group {
+        .control-group {
             display: flex;
-            gap: 4px;
-            margin-left: auto;
+            align-items: center;
+            gap: 8px;
         }
 
-        .shift-group button {
-            padding: 4px 10px;
-            font-size: 0.85rem;
+        .control-group label {
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            color: var(--text-dim);
+        }
+
+        .control-group select {
+            background: var(--bg-raised);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-sm);
+            color: var(--text);
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            padding: 6px 10px;
             cursor: pointer;
+            outline: none;
+            appearance: none;
+            -webkit-appearance: none;
         }
 
-        #container {
-            width: 100%;
-            max-width: 900px;
-            overflow-x: auto;
-            border: 1px solid #444;
+        .control-group select:focus {
+            border-color: var(--accent);
         }
-        canvas { display: block; touch-action: none; }
     </style>
 </head>
 <body>
-    <p><a href="../">← back</a></p>
-    <h2>Scales</h2>
 
-    <div class="controls">
-        <label for="root">Root:</label>
-        <select id="root"></select>
+<div id="app" class="visible">
 
-        <label for="scale">Scale:</label>
-        <select id="scale"></select>
+    <header id="app-header">
+        <a href="../" class="back-link">← back</a>
+        <span class="app-title">SCALES</span>
+        <span class="range-label" id="range-label"></span>
+    </header>
 
-        <div class="shift-group">
-            <button id="shift-oct-down">− oct</button>
-            <button id="shift-semi-down">− semi</button>
-            <button id="shift-semi-up">+ semi</button>
-            <button id="shift-oct-up">+ oct</button>
+    <main id="app-main">
+        <div class="stage">
+            <div class="stage-glow"></div>
+
+            <div class="nudge-row" style="flex-direction: column; gap: 12px; align-items: stretch;">
+
+                <div class="controls-row">
+                    <div class="control-group">
+                        <label for="root">Root</label>
+                        <select id="root"></select>
+                    </div>
+                    <div class="control-group">
+                        <label for="scale">Scale</label>
+                        <select id="scale"></select>
+                    </div>
+                </div>
+
+                <div style="display:flex; justify-content:space-between;">
+                    <div class="nudge-group">
+                        <button class="nudge-btn" id="shift-oct-down">−8va</button>
+                        <button class="nudge-btn" id="shift-semi-down">−♩</button>
+                    </div>
+                    <div class="nudge-group">
+                        <button class="nudge-btn" id="shift-semi-up">+♩</button>
+                        <button class="nudge-btn" id="shift-oct-up">+8va</button>
+                    </div>
+                </div>
+
+            </div>
+
+            <div id="container">
+                <canvas id="piano"></canvas>
+            </div>
+
+            <div class="live-indicator">
+                <span class="live-dot"></span>
+                <span class="live-text">LIVE</span>
+            </div>
         </div>
-    </div>
+    </main>
 
-    <div id="container">
-        <canvas id="piano"></canvas>
-    </div>
+</div>
 
-    <script type="module" src="./scales.js"></script>
+<script type="module" src="./scales.js"></script>
 </body>
 </html>

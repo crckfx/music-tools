@@ -1,0 +1,6 @@
+/* scales accent: green */
+:root {
+    --accent:      #4caf8a;
+    --accent-dim:  #2d7a5f;
+    --accent-glow: rgba(76, 175, 138, 0.18);
+}

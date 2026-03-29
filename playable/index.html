@@ -4,27 +4,47 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Playable</title>
-    <style>
-        body { font-family: sans-serif; padding: 16px; }
-        #container {
-            width: 100%;
-            max-width: 900px;
-            overflow-x: auto;
-            border: 1px solid #444;
-            margin-top: 16px;
-        }
-        canvas { display: block; }
-    </style>
+    <link rel="stylesheet" href="../base.css">
+    <link rel="stylesheet" href="./style.css">
 </head>
 <body>
-    <p><a href="../">← back</a></p>
-    <h2>Playable</h2>
-    <p>Touch or click keys. Slide to move between keys.</p>
 
-    <div id="container">
-        <canvas id="piano"></canvas>
-    </div>
+<div id="app" class="visible">
 
-    <script type="module" src="./playable.js"></script>
+    <header id="app-header">
+        <a href="../" class="back-link">← back</a>
+        <span class="app-title">PLAYABLE</span>
+        <span class="range-label" id="range-label"></span>
+    </header>
+
+    <main id="app-main">
+        <div class="stage">
+            <div class="stage-glow"></div>
+
+            <div class="nudge-row">
+                <div class="nudge-group">
+                    <button class="nudge-btn" id="oct-down">−8va</button>
+                    <button class="nudge-btn" id="semi-down">−♩</button>
+                </div>
+                <div class="nudge-group">
+                    <button class="nudge-btn" id="semi-up">+♩</button>
+                    <button class="nudge-btn" id="oct-up">+8va</button>
+                </div>
+            </div>
+
+            <div id="container">
+                <canvas id="piano"></canvas>
+            </div>
+
+            <div class="live-indicator">
+                <span class="live-dot"></span>
+                <span class="live-text">LIVE</span>
+            </div>
+        </div>
+    </main>
+
+</div>
+
+<script type="module" src="./playable.js"></script>
 </body>
 </html>

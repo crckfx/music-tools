@@ -1,12 +1,29 @@
 export class SynthEngine {
     constructor() {
-        this.ctx    = null;
-        this.voices = new Map();
+        this.ctx        = null;
+        this.master     = null;
+        this.voices     = new Map();
     }
 
     async init() {
         this.ctx = new AudioContext();
         if (this.ctx.state === 'suspended') await this.ctx.resume();
+
+        // Master chain: gain → compressor → destination.
+        // Compressor catches polyphonic summing peaks cleanly;
+        // the low ratio keeps it transparent on single notes.
+        this.master = this.ctx.createGain();
+        this.master.gain.value = 0.85;
+
+        const comp = this.ctx.createDynamicsCompressor();
+        comp.threshold.value = -14;
+        comp.knee.value      = 8;
+        comp.ratio.value     = 5;
+        comp.attack.value    = 0.003;
+        comp.release.value   = 0.18;
+
+        this.master.connect(comp);
+        comp.connect(this.ctx.destination);
     }
 
     get ready() {
@@ -19,10 +36,8 @@ export class SynthEngine {
 
     _computeGain(voice, now) {
         if (now < voice.attackEnd) {
-            // linear 0 → 1 during attack
             return (now - voice.startTime) / (voice.attackEnd - voice.startTime);
         } else if (now < voice.decayEnd) {
-            // linear 1 → sustain during decay
             const t = (now - voice.attackEnd) / (voice.decayEnd - voice.attackEnd);
             return 1.0 + t * (voice.sustain - 1.0);
         } else {
@@ -33,7 +48,6 @@ export class SynthEngine {
     _kill(voice, releaseSecs) {
         const now         = this.ctx.currentTime;
         const currentGain = this._computeGain(voice, now);
-
         voice.gain.gain.cancelScheduledValues(now);
         voice.gain.gain.setValueAtTime(currentGain, now);
         voice.gain.gain.linearRampToValueAtTime(0, now + releaseSecs);
@@ -57,7 +71,7 @@ export class SynthEngine {
         osc.type = 'triangle';
         osc.frequency.value = this._freq(midi);
         osc.connect(gain);
-        gain.connect(ctx.destination);
+        gain.connect(this.master);   // → master chain, not directly to destination
 
         const attack  = 0.008;
         const decay   = 0.35;
@@ -69,15 +83,13 @@ export class SynthEngine {
 
         osc.start(now);
 
-        const voice = {
+        this.voices.set(midi, {
             osc, gain,
             startTime:  now,
             attackEnd:  now + attack,
             decayEnd:   now + attack + decay,
             sustain,
-        };
-
-        this.voices.set(midi, voice);
+        });
     }
 
     noteOff(midi) {
