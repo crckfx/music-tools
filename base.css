@@ -214,7 +214,7 @@ html, body {
 .stage {
     position: relative;
     width: 100%;
-    max-width: 960px;
+    max-width: 1200px;
     display: flex;
     flex-direction: column;
     align-items: stretch;

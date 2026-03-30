@@ -11,9 +11,9 @@
 
     <div id="start-overlay">
         <div class="overlay-inner">
-            <div class="overlay-label">acoustic grand piano</div>
+            <div class="overlay-label">soundfont · musyngkite</div>
             <h1 class="overlay-title">SAMPLER</h1>
-            <p class="overlay-sub">touch-optimised · polyphonic · soundfont</p>
+            <p class="overlay-sub">touch-optimised · polyphonic · multi-instrument</p>
             <button id="start-btn">
                 <span class="btn-ring"></span>
                 START
@@ -38,6 +38,9 @@
                         <button class="nudge-btn" id="oct-down">−8va</button>
                         <button class="nudge-btn" id="semi-down">−♩</button>
                     </div>
+                    <div style="display:flex; align-items:center;">
+                        <select id="instrument-select" class="instrument-select"></select>
+                    </div>
                     <div class="nudge-group">
                         <button class="nudge-btn" id="semi-up">+♩</button>
                         <button class="nudge-btn" id="oct-up">+8va</button>
@@ -50,13 +53,12 @@
 
                 <div class="live-indicator">
                     <span class="live-dot"></span>
-                    <span class="live-text">LIVE</span>
+                    <span class="live-text" id="live-text">LIVE</span>
                 </div>
             </div>
         </main>
     </div>
 
-    <!-- soundfont-player: exposes window.Soundfont -->
     <script src="https://unpkg.com/soundfont-player@0.12.0/dist/soundfont-player.min.js"></script>
     <script type="module" src="./main.js"></script>
 </body>

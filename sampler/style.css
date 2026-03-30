@@ -4,3 +4,22 @@
     --accent-dim:  #a06820;
     --accent-glow: rgba(232, 160, 69, 0.18);
 }
+
+.instrument-select {
+    background: var(--bg-raised);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    padding: 8px 12px;
+    cursor: pointer;
+    outline: none;
+    appearance: none;
+    -webkit-appearance: none;
+    transition: border-color 0.15s;
+}
+
+.instrument-select:focus {
+    border-color: var(--accent);
+}

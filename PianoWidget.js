@@ -10,7 +10,7 @@ const NOTE_NAMES = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
 =========================== */
 export class PianoWidget {
     static DEFAULTS = {
-        whiteHeight:        180,
+        // whiteHeight:        180,
         blackHeightRatio:   0.61,
         blackWidthRatio:    0.65,
         minWhiteWidth:      28,
@@ -46,6 +46,10 @@ export class PianoWidget {
         if (this.config.touchAction) {
             this.canvas.style.touchAction = this.config.touchAction;
         }
+
+        this.canvas.style.webkitTouchCallout = 'none';
+        this.canvas.style.userSelect = 'none';
+        this.canvas.style.webkitUserSelect = 'none';
 
         this._buildKeys();
         this.render();
@@ -126,45 +130,29 @@ export class PianoWidget {
 
         const containerWidth = this.container.clientWidth || 640;
         const startIsBlack   = BLACK_PCS.has(this.range.min % 12);
+        const buildMin       = startIsBlack ? this.range.min - 1 : this.range.min;
 
-        // When the range starts on a black key, we build geometry from its left
-        // white neighbour so we have a reference point, then apply an x-offset
-        // so the black key's left edge lands at x=0. The partial white key to
-        // its left renders with a negative x, which the canvas simply clips.
-        const buildMin = startIsBlack ? this.range.min - 1 : this.range.min;
-
-        // Count white keys included in the build (includes the partial-left white
-        // when starting on a black key).
         let whiteCount = 0;
         for (let m = buildMin; m <= this.range.max; m++) {
             if (WHITE_PCS.has(m % 12)) whiteCount++;
         }
 
-        // Derive the width divisor.
-        // White start: canvas = whiteCount * whiteWidth  →  divisor = whiteCount
-        // Black start: canvas = whiteWidth*(whiteCount - 1 + blackWidthRatio/2)
-        //              because the left partial white contributes only its visible
-        //              slice (blackWidth/2) rather than a full white key width.
-        const divisor = startIsBlack
-            ? whiteCount - 1 + cfg.blackWidthRatio / 2
-            : whiteCount;
-
+        const divisor         = startIsBlack ? whiteCount - 1 + cfg.blackWidthRatio / 2 : whiteCount;
         const naturalWhiteWidth = containerWidth / divisor;
-        const whiteWidth  = Math.max(naturalWhiteWidth, cfg.minWhiteWidth);
-        const blackWidth  = whiteWidth * cfg.blackWidthRatio;
-        const whiteHeight = cfg.whiteHeight;
-        const blackHeight = Math.round(whiteHeight * cfg.blackHeightRatio);
+        const whiteWidth      = Math.max(naturalWhiteWidth, cfg.minWhiteWidth);
+        const blackWidth      = whiteWidth * cfg.blackWidthRatio;
+
+        // height: explicit override wins, otherwise ratio of visible container width
+        const whiteHeight     = cfg.whiteHeight != null
+            ? cfg.whiteHeight
+            : Math.min(300, Math.max(180, Math.floor(containerWidth / 4)));
+        const blackHeight     = Math.round(whiteHeight * cfg.blackHeightRatio);
 
         this._whiteWidth = whiteWidth;
         this._blackWidth = blackWidth;
 
-        // x-offset: shifts every key left so range.min's left edge = 0.
-        // For a black start, the black key at range.min sits centred on the
-        // boundary between buildMin (white, index 0, x=0) and its right neighbour.
-        // Its left edge is at: buildMin.x + buildMin.w - blackWidth/2 = whiteWidth - blackWidth/2.
         const xOffset = startIsBlack ? whiteWidth - blackWidth / 2 : 0;
 
-        // --- white keys ---
         const whiteIndexByMidi = new Map();
         let whiteIndex = 0;
 
@@ -172,18 +160,13 @@ export class PianoWidget {
             if (!WHITE_PCS.has(m % 12)) continue;
             whiteIndexByMidi.set(m, whiteIndex);
             this.whiteKeys.push({
-                midi: m,
-                type: 'white',
-                x:    whiteIndex * whiteWidth - xOffset,
-                y:    0,
-                w:    whiteWidth,
-                h:    whiteHeight,
+                midi: m, type: 'white',
+                x: whiteIndex * whiteWidth - xOffset,
+                y: 0, w: whiteWidth, h: whiteHeight,
             });
             whiteIndex++;
         }
 
-        // --- black keys within [buildMin, range.max] ---
-        // This naturally includes range.min itself when it is a black key.
         for (let m = buildMin; m <= this.range.max; m++) {
             if (!BLACK_PCS.has(m % 12)) continue;
             const leftMidi = m - 1;
@@ -192,52 +175,34 @@ export class PianoWidget {
             const leftKey  = this.whiteKeys[leftIdx];
             const rightKey = this.whiteKeys[leftIdx + 1];
             if (!rightKey) continue;
-
             this.blackKeys.push({
-                midi: m,
-                type: 'black',
-                x:    leftKey.x + leftKey.w - blackWidth / 2,
-                y:    0,
-                w:    blackWidth,
-                h:    blackHeight,
+                midi: m, type: 'black',
+                x: leftKey.x + leftKey.w - blackWidth / 2,
+                y: 0, w: blackWidth, h: blackHeight,
             });
         }
 
-        // --- left boundary: when starting on a white key ---
-        // Check whether the note immediately left of the range is a black key.
-        // If so, half of it would physically exist on a real piano; render it
-        // clipped by the canvas left edge.
         if (!startIsBlack) {
             const leftOuter = this.range.min - 1;
             if (leftOuter >= 0 && BLACK_PCS.has(leftOuter % 12)) {
-                const firstWhite = this.whiteKeys[0]; // x = 0
                 this.blackKeys.unshift({
-                    midi: leftOuter,
-                    type: 'black',
-                    x:    firstWhite.x - blackWidth / 2,   // = -blackWidth/2
-                    y:    0,
-                    w:    blackWidth,
-                    h:    blackHeight,
+                    midi: leftOuter, type: 'black',
+                    x: this.whiteKeys[0].x - blackWidth / 2,
+                    y: 0, w: blackWidth, h: blackHeight,
                 });
             }
         }
 
-        // --- right boundary: symmetric ---
-        // Check whether the note immediately right of the range is a black key.
         const rightOuter = this.range.max + 1;
         if (BLACK_PCS.has(rightOuter % 12)) {
             const lastWhite = this.whiteKeys[this.whiteKeys.length - 1];
             this.blackKeys.push({
-                midi: rightOuter,
-                type: 'black',
-                x:    lastWhite.x + lastWhite.w - blackWidth / 2,
-                y:    0,
-                w:    blackWidth,
-                h:    blackHeight,
+                midi: rightOuter, type: 'black',
+                x: lastWhite.x + lastWhite.w - blackWidth / 2,
+                y: 0, w: blackWidth, h: blackHeight,
             });
         }
 
-        // --- canvas sizing with DPR ---
         const lastWhite = this.whiteKeys[this.whiteKeys.length - 1];
         const cssWidth  = lastWhite.x + lastWhite.w;
         const cssHeight = whiteHeight;
@@ -252,7 +217,6 @@ export class PianoWidget {
         this._cssWidth  = cssWidth;
         this._cssHeight = cssHeight;
     }
-
     /* ===========================
        POINTER SURFACE
     =========================== */

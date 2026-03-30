@@ -1,9 +1,34 @@
+/* ===========================
+   INSTRUMENTS
+   Curated subset of MusyngKite GM soundfont.
+   release is in seconds — used as the R in [0, 0, 1, release] ADSR.
+   attack and decay are 0 (let the sample handle its own onset/decay).
+   sustain is 1 (full level while key is held).
+=========================== */
+export const INSTRUMENTS = {
+    acoustic_grand_piano: { label: 'Grand Piano' },
+    electric_piano_1: { label: 'Electric Piano' },
+    harpsichord: { label: 'Harpsichord' },
+    marimba: { label: 'Marimba' },
+    vibraphone: { label: 'Vibraphone' },
+    church_organ: { label: 'Church Organ' },
+    acoustic_guitar_nylon: { label: 'Nylon Guitar' },
+    flute: { label: 'Flute' },
+    violin: { label: 'Violin' },
+};
+
+const RELEASE = 0.25;
+export const DEFAULT_INSTRUMENT = 'acoustic_grand_piano';
+
+/* ===========================
+   SAMPLER ENGINE
+=========================== */
 export class SamplerEngine {
     constructor() {
-        this.ctx        = null;
-        this.master     = null;
+        this.ctx = null;
         this.instrument = null;
-        this.voices     = new Map();
+        this.voices = new Map(); // midi → node returned by play()
+        this._release = RELEASE;
     }
 
     get ready() {
@@ -13,58 +38,77 @@ export class SamplerEngine {
     async init(onProgress) {
         this.ctx = new AudioContext();
         if (this.ctx.state === 'suspended') await this.ctx.resume();
+        await this._load(DEFAULT_INSTRUMENT, onProgress);
+    }
 
-        // Same master chain as synth so both pages hit the same output level.
-        this.master = this.ctx.createGain();
-        this.master.gain.value = 0.85;
+    async loadInstrument(name, onProgress) {
+        if (!this.ctx) return;
+        // Kill all voices before swapping instrument
+        this.allOff();
+        await this._load(name, onProgress);
+    }
 
-        const comp = this.ctx.createDynamicsCompressor();
-        comp.threshold.value = -14;
-        comp.knee.value      = 8;
-        comp.ratio.value     = 5;
-        comp.attack.value    = 0.003;
-        comp.release.value   = 0.18;
+    async _load(name, onProgress) {
+        const meta = INSTRUMENTS[name];
+        if (!meta) return;
 
-        this.master.connect(comp);
-        comp.connect(this.ctx.destination);
-
-        onProgress('loading soundfont…');
+        onProgress?.(`loading ${meta.label}…`);
 
         this.instrument = await window.Soundfont.instrument(
             this.ctx,
-            'acoustic_grand_piano',
+            name,
             {
                 soundfont: 'MusyngKite',
-                gain:      4.5,          // raised to match synth perceived loudness
-                destination: this.master, // route samples through master chain too
+                gain: 8.0,
+                destination: this.master, // hook instrument up to master
+            },
+
+        );
+
+        this._release = meta.release;
+        onProgress?.('');
+    }
+
+    noteOn(midi, velocity = 100) {
+        if (!this.ready) return;
+        if (this.ctx.state === 'suspended') this.ctx.resume();
+
+        this._stopVoice(midi);
+
+        const node = this.instrument.play(
+            midi,
+            this.ctx.currentTime,
+            {
+                // no note-specific gain because velocity is not implemented - use instrument gain instead
+                // gain: velocity / 127,
+                adsr: [0.0, 0.0, 1.0, RELEASE],
             }
         );
 
-        onProgress('');
-    }
-
-    noteOn(midi) {
-        if (!this.ready) return;
-        this._stopVoice(midi, 0.02);
-        const node = this.instrument.play(midi, this.ctx.currentTime, { gain: 1 });
         this.voices.set(midi, node);
     }
 
     noteOff(midi) {
         if (!this.ready) return;
-        this._stopVoice(midi, 0.25);
-    }
-
-    _stopVoice(midi, fadeTime) {
         const node = this.voices.get(midi);
         if (!node) return;
-        node.stop(this.ctx.currentTime + fadeTime);
+        // Triggers ADSR release phase starting now.
+        // The node fades over this._release seconds then stops itself.
+        node.stop(this.ctx.currentTime);
+        this.voices.delete(midi);
+    }
+
+    _stopVoice(midi) {
+        const node = this.voices.get(midi);
+        if (!node) return;
+        node.stop(this.ctx.currentTime);
         this.voices.delete(midi);
     }
 
     allOff() {
-        for (const midi of [...this.voices.keys()]) {
-            this._stopVoice(midi, 0.05);
+        for (const node of this.voices.values()) {
+            node.stop(this.ctx.currentTime);
         }
+        this.voices.clear();
     }
 }

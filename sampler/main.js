@@ -1,21 +1,17 @@
 import { PianoWidget  } from "../PianoWidget.js";
-import { SamplerEngine } from "./sampler.js";
+import { SamplerEngine, INSTRUMENTS, DEFAULT_INSTRUMENT } from "./sampler.js";
 
-/* ===========================
-   ELEMENTS
-=========================== */
-const overlay    = document.getElementById('start-overlay');
-const startBtn   = document.getElementById('start-btn');
-const loadStatus = document.getElementById('load-status');
-const app        = document.getElementById('app');
-const rangeLabel = document.getElementById('range-label');
-const canvas     = document.getElementById('piano');
-const container  = document.getElementById('container');
+const overlay        = document.getElementById('start-overlay');
+const startBtn       = document.getElementById('start-btn');
+const loadStatus     = document.getElementById('load-status');
+const app            = document.getElementById('app');
+const rangeLabel     = document.getElementById('range-label');
+const liveText       = document.getElementById('live-text');
+const instrumentSel  = document.getElementById('instrument-select');
+const canvas         = document.getElementById('piano');
+const container      = document.getElementById('container');
 
-/* ===========================
-   WIDGET
-   Warm amber press colour to match the page accent.
-=========================== */
+/* --- widget --- */
 const piano = new PianoWidget(canvas, container, {
     touchAction:        'none',
     whiteColor:         '#f0f0f8',
@@ -26,37 +22,34 @@ const piano = new PianoWidget(canvas, container, {
     markColor:          '#e8a045',
     markRootColor:      '#f0c070',
     markTextColor:      '#1a1000',
-    whiteHeight:        180,
-    blackHeightRatio:   0.61,
-    blackWidthRatio:    0.65,
-    minWhiteWidth:      28,
+    // whiteHeight:        Math.min(180, Math.floor(window.innerHeight * 0.38)),
 });
 
-piano.setRange(48, 72); // C3–C5
+piano.setRange(48, 72);
 
-/* ===========================
-   SAMPLER ENGINE
-=========================== */
+/* --- engine --- */
 const sampler = new SamplerEngine();
 
-/* ===========================
-   RANGE LABEL
-=========================== */
-const NOTE_NAMES = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+/* --- populate instrument select --- */
+for (const [key, meta] of Object.entries(INSTRUMENTS)) {
+    const opt = document.createElement('option');
+    opt.value = key;
+    opt.textContent = meta.label;
+    if (key === DEFAULT_INSTRUMENT) opt.selected = true;
+    instrumentSel.appendChild(opt);
+}
 
+/* --- range label --- */
+const NOTE_NAMES = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
 function midiLabel(midi) {
     return `${NOTE_NAMES[midi % 12]}${Math.floor(midi / 12) - 1}`;
 }
-
 function updateRangeLabel() {
     rangeLabel.textContent = `${midiLabel(piano.range.min)} – ${midiLabel(piano.range.max)}`;
 }
-
 updateRangeLabel();
 
-/* ===========================
-   NUDGE
-=========================== */
+/* --- nudge --- */
 function nudge(delta) {
     piano.shiftRange(delta);
     sampler.allOff();
@@ -64,15 +57,24 @@ function nudge(delta) {
     activePointers.clear();
     updateRangeLabel();
 }
-
 document.getElementById('oct-down').addEventListener('click',  () => nudge(-12));
 document.getElementById('semi-down').addEventListener('click', () => nudge(-1));
 document.getElementById('semi-up').addEventListener('click',   () => nudge(1));
 document.getElementById('oct-up').addEventListener('click',    () => nudge(12));
 
-/* ===========================
-   POINTER HANDLER
-=========================== */
+/* --- instrument change --- */
+instrumentSel.addEventListener('change', async () => {
+    const name = instrumentSel.value;
+    liveText.textContent = '…';
+    piano.clearPressedNotes();
+    activePointers.clear();
+    await sampler.loadInstrument(name, (msg) => {
+        liveText.textContent = msg || 'LIVE';
+    });
+    liveText.textContent = 'LIVE';
+});
+
+/* --- pointer handler --- */
 const activePointers = new Map();
 
 piano.onKeyEvent = (key, type, e) => {
@@ -81,7 +83,6 @@ piano.onKeyEvent = (key, type, e) => {
         piano.addPressedNote(key.midi);
         sampler.noteOn(key.midi);
     }
-
     if (type === 'move') {
         const prev = activePointers.get(e.pointerId);
         if (!prev) return;
@@ -92,7 +93,6 @@ piano.onKeyEvent = (key, type, e) => {
         sampler.noteOn(key.midi);
         activePointers.set(e.pointerId, key);
     }
-
     if (type === 'up' || type === 'cancel' || type === 'leave') {
         const prev = activePointers.get(e.pointerId);
         if (prev) {
@@ -103,9 +103,7 @@ piano.onKeyEvent = (key, type, e) => {
     }
 };
 
-/* ===========================
-   PAGE VISIBILITY
-=========================== */
+/* --- visibility --- */
 document.addEventListener('visibilitychange', () => {
     if (document.hidden) {
         sampler.allOff();
@@ -114,18 +112,10 @@ document.addEventListener('visibilitychange', () => {
     }
 });
 
-/* ===========================
-   START OVERLAY
-   Soundfont download happens after user gesture (AudioContext
-   requirement). Button is disabled during load.
-=========================== */
+/* --- start --- */
 startBtn.addEventListener('click', async () => {
     startBtn.disabled = true;
-
-    await sampler.init((msg) => {
-        loadStatus.textContent = msg;
-    });
-
+    await sampler.init((msg) => { loadStatus.textContent = msg; });
     overlay.classList.add('fade-out');
     setTimeout(() => { overlay.style.display = 'none'; }, 600);
     app.classList.add('visible');
