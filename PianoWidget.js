@@ -1,47 +1,46 @@
 /* ===========================
    CONSTANTS
 =========================== */
-const WHITE_PCS  = new Set([0, 2, 4, 5, 7, 9, 11]);
-const BLACK_PCS  = new Set([1, 3, 6, 8, 10]);
-const NOTE_NAMES = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+const WHITE_PCS = new Set([0, 2, 4, 5, 7, 9, 11]);
+const BLACK_PCS = new Set([1, 3, 6, 8, 10]);
+const NOTE_NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
 
 /* ===========================
    PIANO WIDGET
 =========================== */
 export class PianoWidget {
     static DEFAULTS = {
-        // whiteHeight:        180,
-        blackHeightRatio:   0.61,
-        blackWidthRatio:    0.65,
-        minWhiteWidth:      28,
-        insetTop:           0,
-        insetSides:         5,
-        insetBottom:        5,
-        whiteColor:         '#fff',
-        blackColor:         '#222',
-        borderColor:        '#444',
-        borderWidth:        1.5,
-        pressColor:         '#f0a500',
-        markColor:          '#538cc5',
-        markRootColor:      '#1a7bdb',
-        markTextColor:      '#fff',
-        markRadiusRatio:    0.28,   // circle radius as fraction of white key width
-        touchAction:        null,   // null = don't set; 'none' = block all touch scroll
+        blackHeightRatio: 0.61,
+        blackWidthRatio: 0.65,
+        minWhiteWidth: 28,
+        insetTop: 0,
+        insetSides: 5,
+        insetBottom: 5,
+        whiteColor: '#fff',
+        blackColor: '#222',
+        borderColor: '#444',
+        borderWidth: 1.5,
+        pressColor: '#f0a500',
+        markColor: '#538cc5',
+        markRootColor: '#1a7bdb',
+        markTextColor: '#fff',
+        markRadiusRatio: 0.28,   // circle radius as fraction of white key width
+        touchAction: null,   // null = don't set; 'none' = block all touch scroll
     };
 
     constructor(canvas, container, options = {}) {
-        this.canvas    = canvas;
-        this.ctx       = canvas.getContext('2d');
+        this.canvas = canvas;
+        this.ctx = canvas.getContext('2d');
         this.container = container;
-        this.config    = { ...PianoWidget.DEFAULTS, ...options };
+        this.config = { ...PianoWidget.DEFAULTS, ...options };
 
-        this.range           = { min: 60, max: 84 };
-        this.whiteKeys       = [];
-        this.blackKeys       = [];
-        this.markedNotes     = new Set();
+        this.range = { min: 60, max: 84 };
+        this.whiteKeys = [];
+        this.blackKeys = [];
+        this.markedNotes = new Set();
         this.markedRootNotes = new Set();
-        this.pressedNotes    = new Set();
-        this.onKeyEvent      = null;
+        this.pressedNotes = new Set();
+        this.onKeyEvent = null;
 
         if (this.config.touchAction) {
             this.canvas.style.touchAction = this.config.touchAction;
@@ -55,16 +54,21 @@ export class PianoWidget {
         this.render();
         this._bindPointer();
 
-        new ResizeObserver(() => {
+        this._resizeObserver = new ResizeObserver(() => {
             this._buildKeys();
             this.render();
-        }).observe(this.container);
+        });
+        this._resizeObserver.observe(this.container);
 
-        // re-build if display moves between screens with different DPR
-        window.matchMedia(`(resolution: ${window.devicePixelRatio}dppx)`)
-            .addEventListener('change', () => { this._buildKeys(); this.render(); });
+        this._dprHandler = () => { this._buildKeys(); this.render(); };
+        this._dprMediaQuery = window.matchMedia(`(resolution: ${window.devicePixelRatio}dppx)`);
+        this._dprMediaQuery.addEventListener('change', this._dprHandler);
     }
 
+    destroy() {
+        this._resizeObserver.disconnect();
+        this._dprMediaQuery.removeEventListener('change', this._dprHandler);
+    }
     /* ===========================
        PUBLIC API
     =========================== */
@@ -129,24 +133,24 @@ export class PianoWidget {
         this.blackKeys = [];
 
         const containerWidth = this.container.clientWidth || 640;
-        const startIsBlack   = BLACK_PCS.has(this.range.min % 12);
-        const buildMin       = startIsBlack ? this.range.min - 1 : this.range.min;
+        const startIsBlack = BLACK_PCS.has(this.range.min % 12);
+        const buildMin = startIsBlack ? this.range.min - 1 : this.range.min;
 
         let whiteCount = 0;
         for (let m = buildMin; m <= this.range.max; m++) {
             if (WHITE_PCS.has(m % 12)) whiteCount++;
         }
 
-        const divisor         = startIsBlack ? whiteCount - 1 + cfg.blackWidthRatio / 2 : whiteCount;
+        const divisor = startIsBlack ? whiteCount - 1 + cfg.blackWidthRatio / 2 : whiteCount;
         const naturalWhiteWidth = containerWidth / divisor;
-        const whiteWidth      = Math.max(naturalWhiteWidth, cfg.minWhiteWidth);
-        const blackWidth      = whiteWidth * cfg.blackWidthRatio;
+        const whiteWidth = Math.max(naturalWhiteWidth, cfg.minWhiteWidth);
+        const blackWidth = whiteWidth * cfg.blackWidthRatio;
 
         // height: explicit override wins, otherwise ratio of visible container width
-        const whiteHeight     = cfg.whiteHeight != null
+        const whiteHeight = cfg.whiteHeight != null
             ? cfg.whiteHeight
             : Math.min(300, Math.max(180, Math.floor(containerWidth / 4)));
-        const blackHeight     = Math.round(whiteHeight * cfg.blackHeightRatio);
+        const blackHeight = Math.round(whiteHeight * cfg.blackHeightRatio);
 
         this._whiteWidth = whiteWidth;
         this._blackWidth = blackWidth;
@@ -171,8 +175,8 @@ export class PianoWidget {
             if (!BLACK_PCS.has(m % 12)) continue;
             const leftMidi = m - 1;
             if (!whiteIndexByMidi.has(leftMidi)) continue;
-            const leftIdx  = whiteIndexByMidi.get(leftMidi);
-            const leftKey  = this.whiteKeys[leftIdx];
+            const leftIdx = whiteIndexByMidi.get(leftMidi);
+            const leftKey = this.whiteKeys[leftIdx];
             const rightKey = this.whiteKeys[leftIdx + 1];
             if (!rightKey) continue;
             this.blackKeys.push({
@@ -204,17 +208,17 @@ export class PianoWidget {
         }
 
         const lastWhite = this.whiteKeys[this.whiteKeys.length - 1];
-        const cssWidth  = lastWhite.x + lastWhite.w;
+        const cssWidth = lastWhite.x + lastWhite.w;
         const cssHeight = whiteHeight;
-        const dpr       = window.devicePixelRatio || 1;
+        const dpr = window.devicePixelRatio || 1;
 
-        this.canvas.width        = Math.round(cssWidth  * dpr);
-        this.canvas.height       = Math.round(cssHeight * dpr);
-        this.canvas.style.width  = cssWidth  + 'px';
+        this.canvas.width = Math.round(cssWidth * dpr);
+        this.canvas.height = Math.round(cssHeight * dpr);
+        this.canvas.style.width = cssWidth + 'px';
         this.canvas.style.height = cssHeight + 'px';
         this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-        this._cssWidth  = cssWidth;
+        this._cssWidth = cssWidth;
         this._cssHeight = cssHeight;
     }
     /* ===========================
@@ -282,7 +286,7 @@ export class PianoWidget {
             }
 
             ctx.strokeStyle = cfg.borderColor;
-            ctx.lineWidth   = cfg.borderWidth;
+            ctx.lineWidth = cfg.borderWidth;
             ctx.strokeRect(k.x, k.y, k.w, k.h);
         }
 
@@ -308,24 +312,24 @@ export class PianoWidget {
             if (!this.markedNotes.has(k.midi) && !this.markedRootNotes.has(k.midi)) continue;
 
             const isRoot = this.markedRootNotes.has(k.midi);
-            const cx     = k.x + k.w / 2;
-            const cy     = k.y + k.h - radius - cfg.insetBottom - 4;
+            const cx = k.x + k.w / 2;
+            const cy = k.y + k.h - radius - cfg.insetBottom - 4;
 
             ctx.beginPath();
             ctx.arc(cx, cy, radius, 0, Math.PI * 2);
             ctx.fillStyle = isRoot ? cfg.markRootColor : cfg.markColor;
             ctx.fill();
 
-            ctx.fillStyle    = cfg.markTextColor;
-            ctx.font         = `bold ${Math.round(radius * 1.1)}px sans-serif`;
-            ctx.textAlign    = 'center';
+            ctx.fillStyle = cfg.markTextColor;
+            ctx.font = `bold ${Math.round(radius * 1.1)}px sans-serif`;
+            ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             ctx.fillText(NOTE_NAMES[k.midi % 12], cx, cy);
         }
 
         // --- outer border ---
         ctx.strokeStyle = cfg.borderColor;
-        ctx.lineWidth   = cfg.borderWidth;
+        ctx.lineWidth = cfg.borderWidth;
         ctx.strokeRect(0, 0, this._cssWidth, this._cssHeight);
     }
 }

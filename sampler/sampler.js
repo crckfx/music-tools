@@ -36,6 +36,11 @@ export class SamplerEngine {
     }
 
     async init(onProgress) {
+        if (this.ctx) {
+            await this.ctx.close();
+            this.ctx = null;
+            this.instrument = null;
+        }
         this.ctx = new AudioContext();
         if (this.ctx.state === 'suspended') await this.ctx.resume();
         await this._load(DEFAULT_INSTRUMENT, onProgress);
@@ -65,7 +70,7 @@ export class SamplerEngine {
 
         );
 
-        this._release = meta.release;
+        if (meta.release) this._release = meta.release;
         onProgress?.('');
     }
 
@@ -81,7 +86,7 @@ export class SamplerEngine {
             {
                 // no note-specific gain because velocity is not implemented - use instrument gain instead
                 // gain: velocity / 127,
-                adsr: [0.0, 0.0, 1.0, RELEASE],
+                adsr: [0.0, 0.0, 1.0, this._release],
             }
         );
 

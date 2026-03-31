@@ -26,7 +26,6 @@ const piano = new PianoWidget(canvas, container, {
     markColor:          '#7c6af7',
     markRootColor:      '#a78bfa',
     markTextColor:      '#fff',
-    whiteHeight:        180,
     blackHeightRatio:   0.61,
     blackWidthRatio:    0.65,
     minWhiteWidth:      28,

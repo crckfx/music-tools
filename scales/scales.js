@@ -21,11 +21,10 @@ const piano = new PianoWidget(canvas, container, {
     blackColor:         '#18181f',
     borderColor:        '#4a4a5a',
     borderWidth:        1.5,
-    pressColor:         '#4caf8a',
+    pressColor:         '#43c595',
     markColor:          '#4caf8a',
     markRootColor:      '#80d4b0',
     markTextColor:      '#001a0e',
-    whiteHeight:        Math.min(180, Math.floor(window.innerHeight * 0.38)),
 });
 
 /* --- range label --- */
