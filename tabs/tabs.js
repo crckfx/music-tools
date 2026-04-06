@@ -186,7 +186,8 @@ function buildSequence(stringNotes, stringOrder, pattern, skipEmpty) {
  * @param {number}  noteSpacing - extra dash padding after each fret number
  * @param {boolean} showNames   - emit a note-name row above each line block
  */
-function renderAsciiTab(sequence, tuning, lineWidth, noteSpacing, showNames) {
+
+function renderAsciiTab(sequence, tuning, rootPC, lineWidth, noteSpacing, showNames) {
     if (sequence.length === 0) {
         return '(no scale notes found in this fret window)\n\n'
              + 'Try: widening the Span, adjusting Start Fret,\n'
@@ -238,8 +239,21 @@ function renderAsciiTab(sequence, tuning, lineWidth, noteSpacing, showNames) {
             const row   = block.map(c => c.cells[si]).join('');
             out.push(`${label}|${row}|`);
         }
-        out.push('');
 
+        // Root marker row — occupies the natural gap below the strings.
+        // Only emitted if this block contains at least one root note,
+        // so it collapses back to a plain empty line otherwise.
+        const hasRoot = block.some(c => ((c.midi % 12) + 12) % 12 === rootPC);
+        if (hasRoot) {
+            const markerRow = block.map(c => {
+                const isRoot = ((c.midi % 12) + 12) % 12 === rootPC;
+                return (isRoot ? '^' : ' ').padEnd(c.cells[0].length);
+            }).join('');
+            out.push('   ' + markerRow);
+        } else {
+            out.push('');
+        }
+        
         // Optional note-name header row
         if (showNames) {
             const indent  = '   ';  // align with label width
@@ -249,6 +263,9 @@ function renderAsciiTab(sequence, tuning, lineWidth, noteSpacing, showNames) {
             }).join('');
             out.push(indent + nameRow);
         }
+        
+        out.push('');
+        out.push('');
     }
 
     return out.join('\n').trimEnd();
@@ -304,7 +321,8 @@ function update() {
     piano.setMarkedRootNotes([...rootMidis]);
 
     // ── Render tab ────────────────────────────────────────────
-    const tabText = renderAsciiTab(sequence, tuning, lineWidth, noteSpacing, showNames);
+    // const tabText = renderAsciiTab(sequence, tuning, lineWidth, noteSpacing, showNames);
+    const tabText = renderAsciiTab(sequence, tuning, rootPC, lineWidth, noteSpacing, showNames);
     tabOutput.textContent = tabText;
 
     // ── Tab title ─────────────────────────────────────────────
