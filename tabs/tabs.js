@@ -32,6 +32,9 @@ const copyBtn           = document.getElementById('copy-btn');
 const canvas            = document.getElementById('piano');
 const container         = document.getElementById('container');
 
+const padBeforeSelect = document.getElementById('pad-before');
+const padAfterSelect  = document.getElementById('pad-after');
+
 /* ═══════════════════════════════════════════════════════════
    PIANO WIDGET
 ═══════════════════════════════════════════════════════════ */
@@ -191,7 +194,7 @@ function buildSequence(stringNotes, stringOrder, pattern, dedupPref) {
  * @param {number}       noteSpacing - dash padding after each fret number
  * @param {boolean}      showNames
  */
-function renderAsciiTab(sequence, tuning, rootPC, lineWidth, noteSpacing, showNames) {
+function renderAsciiTab(sequence, tuning, rootPC, lineWidth, noteSpacing, showNames, padBefore, padAfter) {
     if (sequence.length === 0) {
         return '(no scale notes found in this fret window)\n\n'
              + 'Try: widening the Span or adjusting Start Fret.';
@@ -199,10 +202,15 @@ function renderAsciiTab(sequence, tuning, rootPC, lineWidth, noteSpacing, showNa
 
     const n        = tuning.midi.length;
     const labelFor = si => tuning.labels[si].padStart(2);
-    const INDENT   = '   '; // 2-char label + '|' = 3 chars before note data
+    const INDENT   = '   ';
 
-    // ── Build column objects ──────────────────────────────────
-    const columns = sequence.map(note => {
+    const makeEmptyColumn = () => ({
+        cells:    Array.from({ length: n }, () => '-'),
+        colWidth: 1,
+        midi:     null,
+    });
+
+    const noteColumns = sequence.map(note => {
         const fretStr  = String(note.fret);
         const colWidth = fretStr.length + noteSpacing;
         const cells    = Array.from({ length: n }, (_, si) =>
@@ -213,7 +221,11 @@ function renderAsciiTab(sequence, tuning, rootPC, lineWidth, noteSpacing, showNa
         return { cells, colWidth, midi: note.midi };
     });
 
-    // ── Wrap columns into lines ───────────────────────────────
+    const columns = [
+        ...Array.from({ length: padBefore }, makeEmptyColumn),
+        ...noteColumns,
+    ];
+
     const lines = [];
     let current = [], usedWidth = 0;
 
@@ -228,40 +240,40 @@ function renderAsciiTab(sequence, tuning, rootPC, lineWidth, noteSpacing, showNa
     }
     if (current.length) lines.push(current);
 
-    // ── Render each line block ────────────────────────────────
+    const lastLine  = lines[lines.length - 1];
+    const lastUsed  = lastLine.reduce((sum, c) => sum + c.colWidth, 0);
+    const fillCount = padAfter === -1 ? lineWidth - lastUsed : padAfter;
+    for (let i = 0; i < fillCount; i++) lastLine.push(makeEmptyColumn());
+
     const out = [];
 
     for (const block of lines) {
 
-        // 1. String rows — high e first
         for (let si = n - 1; si >= 0; si--) {
             const row = block.map(c => c.cells[si]).join('');
             out.push(`${labelFor(si)}|${row}|`);
         }
 
-        // 2. Root marker row — always present
         const hasRoot = rootPC !== null &&
-                        block.some(c => ((c.midi % 12) + 12) % 12 === rootPC);
+                        block.some(c => c.midi !== null && ((c.midi % 12) + 12) % 12 === rootPC);
         if (hasRoot) {
             const markerRow = block.map(c => {
-                const isRoot = ((c.midi % 12) + 12) % 12 === rootPC;
+                const isRoot = c.midi !== null && ((c.midi % 12) + 12) % 12 === rootPC;
                 return (isRoot ? '^' : ' ').padEnd(c.cells[0].length);
             }).join('');
             out.push(INDENT + markerRow);
         } else {
-            // out.push('');
+            out.push('');
         }
 
-        // 3. Note names row — optional
         if (showNames) {
             const nameRow = block.map(c => {
-                const name = NOTE_NAMES[((c.midi % 12) + 12) % 12];
+                const name = c.midi !== null ? NOTE_NAMES[((c.midi % 12) + 12) % 12] : '';
                 return name.padEnd(c.cells[0].length);
             }).join('');
             out.push(INDENT + nameRow);
         }
 
-        // 4. Block separator
         out.push('');
     }
 
@@ -319,7 +331,9 @@ function update() {
     // ── Render tab ────────────────────────────────────────────
     // Pass null for rootPC when showRoot is off — renderer treats null as no markers
     const effectiveRootPC = showRoot ? rootPC : null;
-    const tabText = renderAsciiTab(sequence, tuning, effectiveRootPC, lineWidth, noteSpacing, showNames);
+    const padBefore   = parseInt(padBeforeSelect.value);
+    const padAfter    = padAfterSelect.value === 'fill' ? -1 : parseInt(padAfterSelect.value);
+    const tabText     = renderAsciiTab(sequence, tuning, effectiveRootPC, lineWidth, noteSpacing, showNames, padBefore, padAfter);
     tabOutput.textContent = tabText;
 
     // ── Tab title ─────────────────────────────────────────────
@@ -346,6 +360,7 @@ function shiftFret(delta) {
     rootSelect, scaleSelect, tuningSelect,
     fretSpanSelect, notesPerStrSelect, stringOrderSelect,
     patternSelect, noteSpacingSelect, lineWidthSelect, dedupPrefSelect,
+    padBeforeSelect, padAfterSelect,
 ].forEach(el => el.addEventListener('change', update));
 
 minFretInput.addEventListener('input', update);
