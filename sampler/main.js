@@ -1,5 +1,6 @@
 import { PianoWidget  } from "../PianoWidget.js";
 import { SamplerEngine, INSTRUMENTS, DEFAULT_INSTRUMENT } from "./sampler.js";
+import { KeyboardController } from "../KeyboardController.js";
 
 const overlay        = document.getElementById('start-overlay');
 const startBtn       = document.getElementById('start-btn');
@@ -108,8 +109,24 @@ document.addEventListener('visibilitychange', () => {
         sampler.allOff();
         piano.clearPressedNotes();
         activePointers.clear();
+        kb.allOff();
     }
 });
+
+/* --- keyboard --- */
+function playNote(midi) {
+    if (!sampler.ready) return;
+    if (piano.pressedNotes.has(midi)) return;
+    piano.addPressedNote(midi);
+    sampler.noteOn(midi);
+}
+
+function releaseNote(midi) {
+    piano.removePressedNote(midi);
+    sampler.noteOff(midi);
+}
+
+const kb = new KeyboardController({ onNoteOn: playNote, onNoteOff: releaseNote });
 
 /* --- start --- */
 startBtn.addEventListener('click', async () => {

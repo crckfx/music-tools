@@ -26,6 +26,8 @@ export class PianoWidget {
         markTextColor: '#fff',
         markRadiusRatio: 0.28,   // circle radius as fraction of white key width
         touchAction: null,   // null = don't set; 'none' = block all touch scroll
+        dimWhiteColor: '#888888', // color for out-of-scale white keys
+        dimBlackColor: '#888888', // color for out-of-scale black keys
     };
 
     constructor(canvas, container, options = {}) {
@@ -40,6 +42,8 @@ export class PianoWidget {
         this.markedNotes = new Set();
         this.markedRootNotes = new Set();
         this.pressedNotes = new Set();
+        this.allowedNotes = null;   // null = all keys pass; Set = only these midi values are hittable
+        this.dimmedNotes  = new Set(); // purely visual: these keys render muted
         this.onKeyEvent = null;
 
         if (this.config.touchAction) {
@@ -92,6 +96,25 @@ export class PianoWidget {
         this.render();
     }
 
+    /**
+     * Restrict which keys are hittable. Pass null to remove the gate (default).
+     * Keys not in the set return null from keyAtPoint — all pointer handlers
+     * already guard on `if (key)` so this propagates for free.
+     */
+    setAllowedNotes(notes) {
+        this.allowedNotes = notes == null ? null : new Set(notes);
+        this.render();
+    }
+
+    /**
+     * Keys in this set render muted/dimmed. Purely visual — independent of
+     * allowedNotes so you can dim without blocking (or block without dimming).
+     */
+    setDimmedNotes(notes) {
+        this.dimmedNotes = new Set(notes);
+        this.render();
+    }
+
     setPressedNotes(notes) {
         this.pressedNotes = new Set(notes);
         this.render();
@@ -116,10 +139,16 @@ export class PianoWidget {
      *  Black keys are checked first as they overlap white key regions. */
     keyAtPoint(x, y) {
         for (const k of this.blackKeys) {
-            if (x >= k.x && x < k.x + k.w && y >= k.y && y < k.y + k.h) return k;
+            if (x >= k.x && x < k.x + k.w && y >= k.y && y < k.y + k.h) {
+                if (this.allowedNotes && !this.allowedNotes.has(k.midi)) return null;
+                return k;
+            }
         }
         for (const k of this.whiteKeys) {
-            if (x >= k.x && x < k.x + k.w && y >= k.y && y < k.y + k.h) return k;
+            if (x >= k.x && x < k.x + k.w && y >= k.y && y < k.y + k.h) {
+                if (this.allowedNotes && !this.allowedNotes.has(k.midi)) return null;
+                return k;
+            }
         }
         return null;
     }
@@ -272,7 +301,8 @@ export class PianoWidget {
 
         // --- white key bases ---
         for (const k of this.whiteKeys) {
-            ctx.fillStyle = cfg.whiteColor;
+            const isDimmed = this.dimmedNotes.has(k.midi);
+            ctx.fillStyle = isDimmed ? cfg.dimWhiteColor : cfg.whiteColor;
             ctx.fillRect(k.x, k.y, k.w, k.h);
 
             if (this.pressedNotes.has(k.midi)) {
@@ -291,8 +321,11 @@ export class PianoWidget {
         }
 
         // --- black key bases ---
+        // Dimmed black keys are skipped entirely — they simply don't exist visually.
+        // The white key surface beneath shows through, giving a "custom instrument"
+        // look where only in-scale notes are exposed.
         for (const k of this.blackKeys) {
-            ctx.fillStyle = cfg.blackColor;
+            ctx.fillStyle = this.dimmedNotes.has(k.midi) ? cfg.dimBlackColor : cfg.blackColor;
             ctx.fillRect(k.x, k.y, k.w, k.h);
 
             if (this.pressedNotes.has(k.midi)) {

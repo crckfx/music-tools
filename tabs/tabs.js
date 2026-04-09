@@ -1,5 +1,72 @@
 import { PianoWidget } from "../PianoWidget.js";
 import { GUITAR_TUNINGS, SCALES } from "../data.js";
+import { KeyboardController } from "../KeyboardController.js";
+
+/* ═══════════════════════════════════════════════════════════
+   MINI SYNTH
+   Self-contained Web Audio synth. AudioContext is created
+   lazily on first noteOn (which is always inside a user
+   gesture), satisfying autoplay policy with no extra button.
+═══════════════════════════════════════════════════════════ */
+
+class MiniSynth {
+    constructor() {
+        this._ctx    = null;
+        this._voices = new Map(); // midi → { osc, gain }
+    }
+
+    _getCtx() {
+        if (!this._ctx) {
+            this._ctx = new AudioContext();
+        }
+        if (this._ctx.state === 'suspended') this._ctx.resume();
+        return this._ctx;
+    }
+
+    // midi number → frequency in Hz
+    static _freq(midi) {
+        return 440 * Math.pow(2, (midi - 69) / 12);
+    }
+
+    noteOn(midi, velocity = 0.7) {
+        const ctx = this._getCtx();
+        this.noteOff(midi); // kill any retrigger
+
+        const osc  = ctx.createOscillator();
+        const gain = ctx.createGain();
+
+        osc.type      = 'triangle';
+        osc.frequency.value = MiniSynth._freq(midi);
+
+        // Attack
+        gain.gain.setValueAtTime(0, ctx.currentTime);
+        gain.gain.linearRampToValueAtTime(velocity, ctx.currentTime + 0.01);
+
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+
+        this._voices.set(midi, { osc, gain });
+    }
+
+    noteOff(midi) {
+        const voice = this._voices.get(midi);
+        if (!voice) return;
+        const { osc, gain } = voice;
+        const ctx  = this._ctx;
+        const now  = ctx.currentTime;
+        // Release
+        gain.gain.cancelScheduledValues(now);
+        gain.gain.setValueAtTime(gain.gain.value, now);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.3);
+        osc.stop(now + 0.35);
+        this._voices.delete(midi);
+    }
+
+    allOff() {
+        for (const midi of [...this._voices.keys()]) this.noteOff(midi);
+    }
+}
 
 /* ═══════════════════════════════════════════════════════════
    CONSTANTS
@@ -50,7 +117,13 @@ const piano = new PianoWidget(canvas, container, {
     markColor:     css('--accent'),
     markRootColor: css('--accent-bright'),
     markTextColor: '#1a1200',
+    dimWhiteColor: '#888888',
+    dimBlackColor: '#888888',
+    touchAction:   'none',
 });
+
+const synth = new MiniSynth();
+const activePointers = new Map(); // pointerId → key
 
 /* ═══════════════════════════════════════════════════════════
    POPULATE SELECTS
@@ -328,6 +401,20 @@ function update() {
     piano.setMarkedNotes([...markedMidis]);
     piano.setMarkedRootNotes([...rootMidis]);
 
+    // ── Gate + dim: only scale notes are playable/bright ─────
+    // All keys in the piano range that are NOT in markedMidis get dimmed and blocked.
+    const dimmed = [];
+    for (let m = piano.range.min; m <= piano.range.max; m++) {
+        if (!markedMidis.has(m)) dimmed.push(m);
+    }
+    piano.setAllowedNotes([...markedMidis]);
+    piano.setDimmedNotes(dimmed);
+
+    // Kill any held notes that are no longer in scale after a settings change
+    synth.allOff();
+    piano.clearPressedNotes();
+    activePointers.clear();
+
     // ── Render tab ────────────────────────────────────────────
     // Pass null for rootPC when showRoot is off — renderer treats null as no markers
     const effectiveRootPC = showRoot ? rootPC : null;
@@ -396,6 +483,63 @@ function selectAllText() {
     window.getSelection().removeAllRanges();
     window.getSelection().addRange(range);
 }
+
+/* ═══════════════════════════════════════════════════════════
+   PLAYABLE SURFACE
+═══════════════════════════════════════════════════════════ */
+
+piano.onKeyEvent = (key, type, e) => {
+    if (type === 'down' && key) {
+        activePointers.set(e.pointerId, key);
+        piano.addPressedNote(key.midi);
+        synth.noteOn(key.midi);
+    }
+    if (type === 'move') {
+        const prev = activePointers.get(e.pointerId);
+        if (!prev) return;
+        if (!key || key.midi === prev.midi) return;
+        piano.removePressedNote(prev.midi);
+        synth.noteOff(prev.midi);
+        piano.addPressedNote(key.midi);
+        synth.noteOn(key.midi);
+        activePointers.set(e.pointerId, key);
+    }
+    if (type === 'up' || type === 'cancel' || type === 'leave') {
+        const prev = activePointers.get(e.pointerId);
+        if (prev) {
+            piano.removePressedNote(prev.midi);
+            synth.noteOff(prev.midi);
+        }
+        activePointers.delete(e.pointerId);
+    }
+};
+
+document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+        synth.allOff();
+        piano.clearPressedNotes();
+        activePointers.clear();
+        kb.allOff();
+    }
+});
+
+/* ═══════════════════════════════════════════════════════════
+   KEYBOARD CONTROLLER
+═══════════════════════════════════════════════════════════ */
+
+function playNote(midi) {
+    if (piano.allowedNotes && !piano.allowedNotes.has(midi)) return;
+    if (piano.pressedNotes.has(midi)) return;
+    piano.addPressedNote(midi);
+    synth.noteOn(midi);
+}
+
+function releaseNote(midi) {
+    piano.removePressedNote(midi);
+    synth.noteOff(midi);
+}
+
+const kb = new KeyboardController({ onNoteOn: playNote, onNoteOff: releaseNote });
 
 /* ═══════════════════════════════════════════════════════════
    INIT
