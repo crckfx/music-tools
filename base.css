@@ -152,6 +152,7 @@ html, body {
     height: 100%;
     opacity: 0;
     transition: opacity 0.5s ease 0.1s;
+    overflow: auto;
 }
 
 #app.visible {

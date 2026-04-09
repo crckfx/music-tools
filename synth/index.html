@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Synth</title>
     <link rel="stylesheet" href="../base.css">
+    <link rel="stylesheet" href="../controls-panel.css">
     <link rel="stylesheet" href="./style.css">
 </head>
 <body>
@@ -31,6 +32,16 @@
         <main id="app-main">
             <div class="stage">
                 <div class="stage-glow"></div>
+
+                <div class="controls-panel">
+                    <div class="controls-row">
+                        <span class="row-label">Display</span>
+                        <div class="control-group">
+                            <label for="num-keys">Start fret</label>
+                            <input type="number" id="num-keys" value="24" min="1" max="64" step="1">
+                        </div>
+                    </div>                    
+                </div>
 
                 <div class="nudge-row">
                     <div class="nudge-group">

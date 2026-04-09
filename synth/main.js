@@ -1,15 +1,17 @@
 import { PianoWidget } from "../PianoWidget.js";
-import { SynthEngine  } from "./synth.js";
+import { SynthEngine } from "./synth.js";
 
 /* ===========================
    ELEMENTS
 =========================== */
-const overlay    = document.getElementById('start-overlay');
-const startBtn   = document.getElementById('start-btn');
-const app        = document.getElementById('app');
+const overlay = document.getElementById('start-overlay');
+const startBtn = document.getElementById('start-btn');
+const app = document.getElementById('app');
 const rangeLabel = document.getElementById('range-label');
-const canvas     = document.getElementById('piano');
-const container  = document.getElementById('container');
+const canvas = document.getElementById('piano');
+const container = document.getElementById('container');
+
+const rangeLengthInput = document.getElementById('num-keys');
 
 /* ===========================
    WIDGET
@@ -17,21 +19,22 @@ const container  = document.getElementById('container');
    touch-action: none is essential — this is the playable surface.
 =========================== */
 const piano = new PianoWidget(canvas, container, {
-    touchAction:        'none',
-    whiteColor:         '#f0f0f8',
-    blackColor:         '#18181f',
-    borderColor:        '#4a4a5a',
-    borderWidth:        1.5,
-    pressColor:         '#9d8df7',   // soft accent purple for pressed keys
-    markColor:          '#7c6af7',
-    markRootColor:      '#a78bfa',
-    markTextColor:      '#fff',
-    blackHeightRatio:   0.61,
-    blackWidthRatio:    0.65,
-    minWhiteWidth:      28,
+    touchAction: 'none',
+    whiteColor: '#f0f0f8',
+    blackColor: '#18181f',
+    borderColor: '#4a4a5a',
+    borderWidth: 1.5,
+    pressColor: '#9d8df7',   // soft accent purple for pressed keys
+    markColor: '#7c6af7',
+    markRootColor: '#a78bfa',
+    markTextColor: '#fff',
+    blackHeightRatio: 0.61,
+    blackWidthRatio: 0.65,
+    minWhiteWidth: 28,
 });
 
-piano.setRange(48, 72); // C3–C5 default
+// console.log(rangeLengthInput.value);
+piano.setRange(48, 48+Number(rangeLengthInput.value)); // C3–C5 default
 
 /* ===========================
    SYNTH ENGINE
@@ -41,10 +44,10 @@ const synth = new SynthEngine();
 /* ===========================
    RANGE LABEL UTILITY
 =========================== */
-const NOTE_NAMES = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+const NOTE_NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
 
 function midiLabel(midi) {
-    const name   = NOTE_NAMES[midi % 12];
+    const name = NOTE_NAMES[midi % 12];
     const octave = Math.floor(midi / 12) - 1;
     return `${name}${octave}`;
 }
@@ -68,10 +71,12 @@ function nudge(delta) {
     updateRangeLabel();
 }
 
-document.getElementById('oct-down').addEventListener('click',  () => nudge(-12));
+
+
+document.getElementById('oct-down').addEventListener('click', () => nudge(-12));
 document.getElementById('semi-down').addEventListener('click', () => nudge(-1));
-document.getElementById('semi-up').addEventListener('click',   () => nudge(1));
-document.getElementById('oct-up').addEventListener('click',    () => nudge(12));
+document.getElementById('semi-up').addEventListener('click', () => nudge(1));
+document.getElementById('oct-up').addEventListener('click', () => nudge(12));
 
 /* ===========================
    POINTER HANDLER
@@ -136,3 +141,23 @@ startBtn.addEventListener('click', async () => {
     // Reveal app
     app.classList.add('visible');
 });
+
+
+// test tweaking the widget's range
+function modifyRangeSize(length) {
+    const min = piano.range.min;
+    const newMax = piano.range.min + length;
+
+    synth.allOff();
+    piano.clearPressedNotes();
+    activePointers.clear();
+ 
+    piano.setRange(min, newMax);
+    
+    updateRangeLabel();
+}
+rangeLengthInput.addEventListener('input', ()=> {
+    console.log(rangeLengthInput.value);
+    const newLength = Number(rangeLengthInput.value);
+    modifyRangeSize(newLength);
+})

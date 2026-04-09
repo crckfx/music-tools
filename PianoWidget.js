@@ -156,100 +156,109 @@ export class PianoWidget {
     /* ===========================
        BUILD KEYS & GEOMETRY
     =========================== */
-    _buildKeys() {
-        const cfg = this.config;
-        this.whiteKeys = [];
-        this.blackKeys = [];
+_buildKeys() {
+    const cfg = this.config;
+    this.whiteKeys = [];
+    this.blackKeys = [];
 
-        const containerWidth = this.container.clientWidth || 640;
-        const startIsBlack = BLACK_PCS.has(this.range.min % 12);
-        const buildMin = startIsBlack ? this.range.min - 1 : this.range.min;
+    const containerWidth = this.container.clientWidth || 640;
+    const startIsBlack = BLACK_PCS.has(this.range.min % 12);
+    const endIsBlack   = BLACK_PCS.has(this.range.max % 12);
 
-        let whiteCount = 0;
-        for (let m = buildMin; m <= this.range.max; m++) {
-            if (WHITE_PCS.has(m % 12)) whiteCount++;
-        }
+    // Build full key range including compensating half-white if start is black
+    const buildMin = startIsBlack ? this.range.min - 1 : this.range.min;
+    const buildMax = endIsBlack ? this.range.max + 1 : this.range.max;
 
-        const divisor = startIsBlack ? whiteCount - 1 + cfg.blackWidthRatio / 2 : whiteCount;
-        const naturalWhiteWidth = containerWidth / divisor;
-        const whiteWidth = Math.max(naturalWhiteWidth, cfg.minWhiteWidth);
-        const blackWidth = whiteWidth * cfg.blackWidthRatio;
-
-        // height: explicit override wins, otherwise ratio of visible container width
-        const whiteHeight = cfg.whiteHeight != null
-            ? cfg.whiteHeight
-            : Math.min(300, Math.max(180, Math.floor(containerWidth / 4)));
-        const blackHeight = Math.round(whiteHeight * cfg.blackHeightRatio);
-
-        this._whiteWidth = whiteWidth;
-        this._blackWidth = blackWidth;
-
-        const xOffset = startIsBlack ? whiteWidth - blackWidth / 2 : 0;
-
-        const whiteIndexByMidi = new Map();
-        let whiteIndex = 0;
-
-        for (let m = buildMin; m <= this.range.max; m++) {
-            if (!WHITE_PCS.has(m % 12)) continue;
-            whiteIndexByMidi.set(m, whiteIndex);
-            this.whiteKeys.push({
-                midi: m, type: 'white',
-                x: whiteIndex * whiteWidth - xOffset,
-                y: 0, w: whiteWidth, h: whiteHeight,
-            });
-            whiteIndex++;
-        }
-
-        for (let m = buildMin; m <= this.range.max; m++) {
-            if (!BLACK_PCS.has(m % 12)) continue;
-            const leftMidi = m - 1;
-            if (!whiteIndexByMidi.has(leftMidi)) continue;
-            const leftIdx = whiteIndexByMidi.get(leftMidi);
-            const leftKey = this.whiteKeys[leftIdx];
-            const rightKey = this.whiteKeys[leftIdx + 1];
-            if (!rightKey) continue;
-            this.blackKeys.push({
-                midi: m, type: 'black',
-                x: leftKey.x + leftKey.w - blackWidth / 2,
-                y: 0, w: blackWidth, h: blackHeight,
-            });
-        }
-
-        if (!startIsBlack) {
-            const leftOuter = this.range.min - 1;
-            if (leftOuter >= 0 && BLACK_PCS.has(leftOuter % 12)) {
-                this.blackKeys.unshift({
-                    midi: leftOuter, type: 'black',
-                    x: this.whiteKeys[0].x - blackWidth / 2,
-                    y: 0, w: blackWidth, h: blackHeight,
-                });
-            }
-        }
-
-        const rightOuter = this.range.max + 1;
-        if (BLACK_PCS.has(rightOuter % 12)) {
-            const lastWhite = this.whiteKeys[this.whiteKeys.length - 1];
-            this.blackKeys.push({
-                midi: rightOuter, type: 'black',
-                x: lastWhite.x + lastWhite.w - blackWidth / 2,
-                y: 0, w: blackWidth, h: blackHeight,
-            });
-        }
-
-        const lastWhite = this.whiteKeys[this.whiteKeys.length - 1];
-        const cssWidth = lastWhite.x + lastWhite.w;
-        const cssHeight = whiteHeight;
-        const dpr = window.devicePixelRatio || 1;
-
-        this.canvas.width = Math.round(cssWidth * dpr);
-        this.canvas.height = Math.round(cssHeight * dpr);
-        this.canvas.style.width = cssWidth + 'px';
-        this.canvas.style.height = cssHeight + 'px';
-        this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-
-        this._cssWidth = cssWidth;
-        this._cssHeight = cssHeight;
+    // Count whites for width calculation
+    let whiteCount = 0;
+    for (let m = buildMin; m <= buildMax; m++) {
+        if (WHITE_PCS.has(m % 12)) whiteCount++;
     }
+
+    // Adjust divisor: start half-white contributes 0.5, end half-white contributes 0.5 if ending on black
+    let divisor = whiteCount;
+    if (startIsBlack) divisor -= 0.5;   // first white only half visible
+    if (endIsBlack) divisor -= 0.5;     // last white only half visible
+
+    const naturalWhiteWidth = containerWidth / divisor;
+    const whiteWidth = Math.max(naturalWhiteWidth, cfg.minWhiteWidth);
+    const blackWidth = whiteWidth * cfg.blackWidthRatio;
+
+    const whiteHeight = cfg.whiteHeight != null
+        ? cfg.whiteHeight
+        : Math.min(300, Math.max(180, Math.floor(containerWidth / 4)));
+    const blackHeight = Math.round(whiteHeight * cfg.blackHeightRatio);
+
+    this._whiteWidth = whiteWidth;
+    this._blackWidth = blackWidth;
+
+    const xOffset = startIsBlack ? whiteWidth / 2 : 0;
+
+    const whiteIndexByMidi = new Map();
+    let whiteIndex = 0;
+
+    for (let m = buildMin; m <= buildMax; m++) {
+        if (!WHITE_PCS.has(m % 12)) continue;
+        whiteIndexByMidi.set(m, whiteIndex);
+        this.whiteKeys.push({
+            midi: m, type: 'white',
+            x: whiteIndex * whiteWidth - xOffset,
+            y: 0, w: whiteWidth, h: whiteHeight,
+        });
+        whiteIndex++;
+    }
+
+    for (let m = buildMin; m <= this.range.max; m++) {
+        if (!BLACK_PCS.has(m % 12)) continue;
+        const leftMidi = m - 1;
+        if (!whiteIndexByMidi.has(leftMidi)) continue;
+        const leftIdx = whiteIndexByMidi.get(leftMidi);
+        const leftKey = this.whiteKeys[leftIdx];
+        this.blackKeys.push({
+            midi: m, type: 'black',
+            x: leftKey.x + leftKey.w - blackWidth / 2,
+            y: 0, w: blackWidth, h: blackHeight,
+        });
+    }
+
+    // Optional: add left/right outer blacks for non-start-black ranges
+    if (!startIsBlack) {
+        const leftOuter = this.range.min - 1;
+        if (leftOuter >= 0 && BLACK_PCS.has(leftOuter % 12)) {
+            this.blackKeys.unshift({
+                midi: leftOuter, type: 'black',
+                x: this.whiteKeys[0].x - blackWidth / 2,
+                y: 0, w: blackWidth, h: blackHeight,
+            });
+        }
+    }
+    const rightOuter = this.range.max + 1;
+    if (!startIsBlack && BLACK_PCS.has(rightOuter % 12)) {
+        const lastWhite = this.whiteKeys[this.whiteKeys.length - 1];
+        this.blackKeys.push({
+            midi: rightOuter, type: 'black',
+            x: lastWhite.x + lastWhite.w - blackWidth / 2,
+            y: 0, w: blackWidth, h: blackHeight,
+        });
+    }
+
+    // Set canvas dimensions
+    const lastWhite = this.whiteKeys[this.whiteKeys.length - 1];
+    const cssWidth = endIsBlack
+        ? lastWhite.x + lastWhite.w / 2 + blackWidth / 2   // half-white plus half-black for last black
+        : lastWhite.x + lastWhite.w;
+    const cssHeight = whiteHeight;
+    const dpr = window.devicePixelRatio || 1;
+
+    this.canvas.width = Math.round(cssWidth * dpr);
+    this.canvas.height = Math.round(cssHeight * dpr);
+    this.canvas.style.width = cssWidth + 'px';
+    this.canvas.style.height = cssHeight + 'px';
+    this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+    this._cssWidth = cssWidth;
+    this._cssHeight = cssHeight;
+}
     /* ===========================
        POINTER SURFACE
     =========================== */
@@ -321,9 +330,6 @@ export class PianoWidget {
         }
 
         // --- black key bases ---
-        // Dimmed black keys are skipped entirely — they simply don't exist visually.
-        // The white key surface beneath shows through, giving a "custom instrument"
-        // look where only in-scale notes are exposed.
         for (const k of this.blackKeys) {
             ctx.fillStyle = this.dimmedNotes.has(k.midi) ? cfg.dimBlackColor : cfg.blackColor;
             ctx.fillRect(k.x, k.y, k.w, k.h);
