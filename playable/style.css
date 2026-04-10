@@ -2,5 +2,5 @@
 :root {
     --accent:      #6ab0e0;
     --accent-dim:  #3a7aaa;
-    --accent-glow: rgba(106, 176, 224, 0.18);
+    --accent-glow: #6ab0e02e;
 }

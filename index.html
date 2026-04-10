@@ -6,6 +6,15 @@
     <title>music-tools</title>
     <link rel="stylesheet" href="./base.css">
     <link rel="stylesheet" href="./index.css">
+
+
+    <link rel="modulepreload" href="./core/global.js">
+    <script type="module">
+        import { applyProfileToElement } from './core/global.js';
+        document.querySelectorAll('[data-profile]').forEach(el =>
+            applyProfileToElement(el, el.dataset.profile)
+        );
+    </script>    
 </head>
 <body>
 
@@ -19,48 +28,42 @@
 
     <nav class="tool-grid">
 
-        <a class="tool-card" href="./synth/"
-           style="--card-accent:#7c6af7; --card-accent-glow:rgba(124,106,247,0.12)">
-            <span class="card-tag">web audio · synthesis</span>
-            <span class="card-title">SYNTH</span>
-            <p class="card-desc">Polyphonic triangle wave with a full ADSR envelope. Touch-optimised playable surface with per-note voice management.</p>
-            <span class="card-arrow">open →</span>
+        <a class="tool-card" href="./synth/" data-profile="synth">
+           <span class="card-tag">web audio · synthesis</span>
+           <span class="card-title">SYNTH</span>
+           <p class="card-desc">Polyphonic triangle wave with a full ADSR envelope. Touch-optimised playable surface with per-note voice management.</p>
+           <span class="card-arrow">open →</span>
         </a>
-
-        <a class="tool-card" href="./sampler/"
-           style="--card-accent:#e8a045; --card-accent-glow:rgba(232,160,69,0.12)">
+        
+        <a class="tool-card" href="./sampler/" data-profile="sampler">
             <span class="card-tag">soundfont · samples</span>
             <span class="card-title">SAMPLER</span>
             <p class="card-desc">Acoustic grand piano via MusyngKite soundfont. Real sample playback with natural decay over the same playable interface.</p>
             <span class="card-arrow">open →</span>
         </a>
 
-        <a class="tool-card" href="./scales/"
-           style="--card-accent:#4caf8a; --card-accent-glow:rgba(76,175,138,0.12)">
+        <a class="tool-card" href="./scales/" data-profile="scales">
             <span class="card-tag">theory · visualiser</span>
             <span class="card-title">SCALES</span>
             <p class="card-desc">Visualise major, minor and harmonic minor scales across any root note. Marks scale degrees with note names directly on the keys.</p>
             <span class="card-arrow">open →</span>
         </a>
 
-        <a class="tool-card" href="./tabs/"
-           style="--card-accent:#c9a227; --card-accent-glow:rgba(201,162,39,0.12)">
+        <a class="tool-card" href="./tabs/" data-profile="tabs">
             <span class="card-tag">guitar · tab generator</span>
             <span class="card-title">TABS</span>
             <p class="card-desc">Generate guitar tabs from any scale. Configure fret position, notes per string, direction pattern and formatting rules. Outputs copyable ASCII tab.</p>
             <span class="card-arrow">open →</span>
         </a>
 
-        <a class="tool-card" href="./chords/"
-           style="--card-accent:#e05c7a; --card-accent-glow:rgba(224,92,122,0.12)">
+        <a class="tool-card" href="./chords/" data-profile="chords">
             <span class="card-tag">coming soon</span>
             <span class="card-title">CHORDS</span>
             <p class="card-desc">Keyboard-as-selector. Click notes on and off to build a chord; the widget identifies and names what you've played.</p>
             <span class="card-arrow">open →</span>
         </a>
 
-        <a class="tool-card" href="./playable/"
-           style="--card-accent:#6ab0e0; --card-accent-glow:rgba(106,176,224,0.12)">
+        <a class="tool-card" href="./playable/" data-profile="playable">
             <span class="card-tag">interaction · demo</span>
             <span class="card-title">PLAYABLE</span>
             <p class="card-desc">Bare playable surface without audio. Demonstrates multi-touch pointer handling and slide-between-keys behaviour.</p>

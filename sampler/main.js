@@ -1,6 +1,6 @@
-import { PianoWidget  } from "../PianoWidget.js";
+import { PianoWidget  } from "../core/PianoWidget.js";
 import { SamplerEngine, INSTRUMENTS, DEFAULT_INSTRUMENT } from "./sampler.js";
-import { KeyboardController } from "../KeyboardController.js";
+import { KeyboardController } from "../core/KeyboardController.js";
 
 const overlay        = document.getElementById('start-overlay');
 const startBtn       = document.getElementById('start-btn');
@@ -126,7 +126,7 @@ function releaseNote(midi) {
     sampler.noteOff(midi);
 }
 
-const kb = new KeyboardController({ onNoteOn: playNote, onNoteOff: releaseNote });
+const kb = new KeyboardController({ onNoteOn: playNote, onNoteOff: releaseNote, zOctave: 3, qOctave: 4 });
 
 /* --- start --- */
 startBtn.addEventListener('click', async () => {

@@ -1,5 +1,5 @@
 import { PianoWidget } from "../core/PianoWidget.js";
-import { SynthEngine } from "./synth.js";
+import { SynthEngine } from "../synth/synth.js";
 
 /* ===========================
    ELEMENTS
@@ -161,3 +161,4 @@ rangeLengthInput.addEventListener('input', ()=> {
     const newLength = Number(rangeLengthInput.value);
     modifyRangeSize(newLength);
 })
+

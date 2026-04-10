@@ -17,10 +17,10 @@ export const SCALES = {
 
 // Tunings: midi array ordered low string → high string (index 0 = thickest)
 export const GUITAR_TUNINGS = {
-    standard:    { name: 'Standard',    labels: ['E','A','D','G','B','e'], midi: [40,45,50,55,59,64] },
-    drop_d:      { name: 'Drop D',      labels: ['D','A','D','G','B','e'], midi: [38,45,50,55,59,64] },
-    open_g:      { name: 'Open G',      labels: ['D','G','D','G','B','d'], midi: [38,43,50,55,59,62] },
-    open_e:      { name: 'Open E',      labels: ['E','B','E','G#','B','e'],midi: [40,47,52,56,61,64] },
-    dadgad:      { name: 'DADGAD',      labels: ['D','A','D','G','A','d'], midi: [38,45,50,55,57,62] },
-    eb_standard: { name: 'Eb Standard', labels: ['Eb','Ab','Db','Gb','Bb','eb'], midi: [39,44,49,54,58,63] },
+    standard:    { name: 'Standard',    labels: ['E','A','D','G','B','e'],          midi: [40,45,50,55,59,64] },
+    drop_d:      { name: 'Drop D',      labels: ['D','A','D','G','B','e'],          midi: [38,45,50,55,59,64] },
+    open_g:      { name: 'Open G',      labels: ['D','G','D','G','B','d'],          midi: [38,43,50,55,59,62] },
+    open_e:      { name: 'Open E',      labels: ['E','B','E','G#','B','e'],         midi: [40,47,52,56,61,64] },
+    dadgad:      { name: 'DADGAD',      labels: ['D','A','D','G','A','d'],          midi: [38,45,50,55,57,62] },
+    eb_standard: { name: 'Eb Standard', labels: ['Eb','Ab','Db','Gb','Bb','eb'],    midi: [39,44,49,54,58,63] },
 };

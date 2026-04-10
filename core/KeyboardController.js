@@ -25,7 +25,7 @@
 const Q_WHITE = {
     KeyQ: 0,  KeyW: 2,  KeyE: 4,  KeyR: 5,  KeyT: 7,
     KeyY: 9,  KeyU: 11, KeyI: 12, KeyO: 14, KeyP: 16,
-    BracketLeft: 19, BracketRight: 21,
+    BracketLeft: 17, BracketRight: 19,
 };
 
 const NUM_BLACK = {
@@ -52,6 +52,7 @@ const MAPPED_CODES = new Set([
     ...Object.keys(NUM_BLACK),
     ...Object.keys(Z_WHITE),
     ...Object.keys(A_BLACK),
+    'Quote',
 ]);
 
 export class KeyboardController {
@@ -127,9 +128,10 @@ export class KeyboardController {
     }
 
     _keydown(e) {
+        if (MAPPED_CODES.has(e.code)) e.preventDefault();
+        console.log(e.code)
         if (e.repeat)              return;
         if (this._shouldIgnore(e)) return;
-        if (MAPPED_CODES.has(e.code)) e.preventDefault();
 
         const midi = this._midiForCode(e.code);
         if (midi === null)          return;

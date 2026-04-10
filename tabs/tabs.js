@@ -1,7 +1,7 @@
-import { PianoWidget } from "../PianoWidget.js";
-import { MiniSynth } from "../MiniSynth.js";
-import { GUITAR_TUNINGS, SCALES } from "../data.js";
-import { KeyboardController } from "../KeyboardController.js";
+import { PianoWidget } from "../core/PianoWidget.js";
+import { MiniSynth } from "../core/MiniSynth.js";
+import { GUITAR_TUNINGS, SCALES } from "../core/data.js";
+import { KeyboardController } from "../core/KeyboardController.js";
 
 
 /* ═══════════════════════════════════════════════════════════
@@ -65,6 +65,7 @@ const activePointers = new Map(); // pointerId → key
    POPULATE SELECTS
 ═══════════════════════════════════════════════════════════ */
 
+// populate rootSelect
 for (let i = 0; i < 12; i++) {
     const opt = document.createElement('option');
     opt.value = i;
@@ -72,6 +73,7 @@ for (let i = 0; i < 12; i++) {
     rootSelect.appendChild(opt);
 }
 
+// populate scaleSelect
 for (const [key, { name }] of Object.entries(SCALES)) {
     const opt = document.createElement('option');
     opt.value = key;
@@ -79,6 +81,7 @@ for (const [key, { name }] of Object.entries(SCALES)) {
     scaleSelect.appendChild(opt);
 }
 
+// populate tuningSelect
 for (const [key, { name, labels }] of Object.entries(GUITAR_TUNINGS)) {
     const opt = document.createElement('option');
     opt.value = key;
@@ -476,7 +479,7 @@ function releaseNote(midi) {
     synth.noteOff(midi);
 }
 
-const kb = new KeyboardController({ onNoteOn: playNote, onNoteOff: releaseNote });
+const kb = new KeyboardController({ onNoteOn: playNote, onNoteOff: releaseNote, zOctave: 2, qOctave: 3, });
 
 /* ═══════════════════════════════════════════════════════════
    INIT
