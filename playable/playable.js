@@ -1,6 +1,5 @@
+import { midiLabel, NOTE_NAMES } from "../core/global.js";
 import { PianoWidget } from "../core/PianoWidget.js";
-
-const NOTE_NAMES = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
 
 const canvas     = document.getElementById('piano');
 const container  = document.getElementById('container');
@@ -21,9 +20,6 @@ const piano = new PianoWidget(canvas, container, {
 piano.setRange(48, 72);
 
 /* --- range label --- */
-function midiLabel(midi) {
-    return `${NOTE_NAMES[midi % 12]}${Math.floor(midi / 12) - 1}`;
-}
 function updateRangeLabel() {
     rangeLabel.textContent = `${midiLabel(piano.range.min)} – ${midiLabel(piano.range.max)}`;
 }

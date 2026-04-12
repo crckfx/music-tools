@@ -1,9 +1,10 @@
+import { NOTE_NAMES } from "./global.js";
+
 /* ===========================
    CONSTANTS
 =========================== */
 const WHITE_PCS = new Set([0, 2, 4, 5, 7, 9, 11]);
 const BLACK_PCS = new Set([1, 3, 6, 8, 10]);
-const NOTE_NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
 
 /* ===========================
    PIANO WIDGET

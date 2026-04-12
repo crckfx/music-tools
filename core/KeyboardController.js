@@ -31,7 +31,7 @@ const Q_WHITE = {
 const NUM_BLACK = {
     Digit2: 1,  Digit3: 3,
     Digit5: 6,  Digit6: 8,  Digit7: 10,
-    Digit9: 13, Digit0: 15, Equal: 20,
+    Digit9: 13, Digit0: 15, Equal: 18,
 };
 
 const Z_WHITE = {
@@ -128,13 +128,18 @@ export class KeyboardController {
     }
 
     _keydown(e) {
-        if (MAPPED_CODES.has(e.code)) e.preventDefault();
-        console.log(e.code)
         if (e.repeat)              return;
-        if (this._shouldIgnore(e)) return;
+        if (this._shouldIgnore(e)) return;  // focus in input etc.
 
+        // From here: we *might* consume this key
         const midi = this._midiForCode(e.code);
-        if (midi === null)          return;
+        if (midi === null)          return;  // not a mapped note key at all
+
+        // Only now do we know we're actually consuming it
+        if (!e.ctrlKey && !e.metaKey && !e.altKey) {
+            e.preventDefault();
+        }
+
         if (this._held.has(e.code)) return;
         this._held.add(e.code);
         this.onNoteOn(midi);

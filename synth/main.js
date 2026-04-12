@@ -44,7 +44,6 @@ const synth = new SynthEngine();
 /* ===========================
    RANGE LABEL UTILITY
 =========================== */
-const NOTE_NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
 
 function midiLabel(midi) {
     const name = NOTE_NAMES[midi % 12];

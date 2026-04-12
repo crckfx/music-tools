@@ -2,13 +2,7 @@ import { PianoWidget } from "../core/PianoWidget.js";
 import { MiniSynth } from "../core/MiniSynth.js";
 import { GUITAR_TUNINGS, SCALES } from "../core/data.js";
 import { KeyboardController } from "../core/KeyboardController.js";
-
-
-/* ═══════════════════════════════════════════════════════════
-   CONSTANTS
-═══════════════════════════════════════════════════════════ */
-
-const NOTE_NAMES = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+import { midiLabel, NOTE_NAMES } from "../core/global.js";
 
 /* ═══════════════════════════════════════════════════════════
    DOM REFS
@@ -87,14 +81,6 @@ for (const [key, { name, labels }] of Object.entries(GUITAR_TUNINGS)) {
     opt.value = key;
     opt.textContent = `${name}  (${labels.join('')})`;
     tuningSelect.appendChild(opt);
-}
-
-/* ═══════════════════════════════════════════════════════════
-   HELPERS
-═══════════════════════════════════════════════════════════ */
-
-function midiLabel(midi) {
-    return `${NOTE_NAMES[midi % 12]}${Math.floor(midi / 12) - 1}`;
 }
 
 /* ═══════════════════════════════════════════════════════════

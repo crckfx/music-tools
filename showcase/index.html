@@ -7,13 +7,20 @@
     <link rel="stylesheet" href="../base.css">
     <link rel="stylesheet" href="../controls-panel.css">
     <link rel="stylesheet" href="./style.css">
+
+
+    <link rel="modulepreload" href="../core/global.js">
+    <script type="module">
+        import { applyProfileToElement } from '../core/global.js';
+        applyProfileToElement(document.getElementById('app'), 'showcase');
+    </script>        
 </head>
 <body>
 
     <div id="start-overlay">
         <div class="overlay-inner">
-            <div class="overlay-label">triangle wave</div>
-            <h1 class="overlay-title">PIANO WIDGET</h1>
+            <div class="overlay-label">showcase</div>
+            <h1 class="overlay-title">PianoWidget</h1>
             <p class="overlay-sub">touch-optimised · polyphonic · web audio</p>
             <button id="start-btn">
                 <span class="btn-ring"></span>
@@ -25,7 +32,7 @@
     <div id="app">
         <header id="app-header">
             <a href="../" class="back-link">← back</a>
-            <span class="app-title">PIANO WIDGET</span>
+            <span class="app-title">PianoWidget</span>
             <span class="range-label" id="range-label"></span>
         </header>
 
@@ -35,10 +42,12 @@
 
                 <div class="controls-panel">
                     <div class="controls-row">
-                        <span class="row-label">Display</span>
+                        <span class="row-label">Piano</span>
                         <div class="control-group">
                             <label for="num-keys">Number of keys</label>
-                            <input type="number" id="num-keys" value="24" min="1" max="64" step="1">
+                            <input type="number" id="num-keys" value="30" min="1" max="64" step="1">
+                            <label for="keys-range-start">Starting Key</label>
+                            <input type="number" id="keys-range-start">
                         </div>
                     </div>                    
                 </div>

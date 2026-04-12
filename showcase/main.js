@@ -1,5 +1,9 @@
 import { PianoWidget } from "../core/PianoWidget.js";
 import { SynthEngine } from "../synth/synth.js";
+import { app_profiles, midiLabel, NOTE_NAMES } from "../core/global.js";
+import { KeyboardController } from "../core/KeyboardController.js";
+
+const colors = app_profiles.showcase.colors;
 
 /* ===========================
    ELEMENTS
@@ -24,9 +28,10 @@ const piano = new PianoWidget(canvas, container, {
     blackColor: '#18181f',
     borderColor: '#4a4a5a',
     borderWidth: 1.5,
-    pressColor: '#9d8df7',   // soft accent purple for pressed keys
-    markColor: '#7c6af7',
-    markRootColor: '#a78bfa',
+    // pressColor: '#9d8df7',   // soft accent purple for pressed keys
+    pressColor: colors.accent,   // soft accent purple for pressed keys
+    markColor: colors.accentBright,
+    markRootColor: colors.accentBright,
     markTextColor: '#fff',
     blackHeightRatio: 0.61,
     blackWidthRatio: 0.65,
@@ -44,14 +49,6 @@ const synth = new SynthEngine();
 /* ===========================
    RANGE LABEL UTILITY
 =========================== */
-const NOTE_NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
-
-function midiLabel(midi) {
-    const name = NOTE_NAMES[midi % 12];
-    const octave = Math.floor(midi / 12) - 1;
-    return `${name}${octave}`;
-}
-
 function updateRangeLabel() {
     rangeLabel.textContent = `${midiLabel(piano.range.min)} – ${midiLabel(piano.range.max)}`;
 }
@@ -157,8 +154,25 @@ function modifyRangeSize(length) {
     updateRangeLabel();
 }
 rangeLengthInput.addEventListener('input', ()=> {
-    console.log(rangeLengthInput.value);
     const newLength = Number(rangeLengthInput.value);
     modifyRangeSize(newLength);
-})
+});
+
+
+// ---------------------------------------------------------------
+// keyboard handling
+function playNote(midi) {
+    if (piano.allowedNotes && !piano.allowedNotes.has(midi)) return;
+    if (piano.pressedNotes.has(midi)) return;
+    piano.addPressedNote(midi);
+    synth.noteOn(midi);
+}
+
+function releaseNote(midi) {
+    piano.removePressedNote(midi);
+    synth.noteOff(midi);
+}
+
+const kb = new KeyboardController({ onNoteOn: playNote, onNoteOff: releaseNote, zOctave: 3, qOctave: 4, });
+// ---------------------------------------------------------------
 

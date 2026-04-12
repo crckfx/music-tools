@@ -1,6 +1,7 @@
 import { PianoWidget  } from "../core/PianoWidget.js";
 import { SamplerEngine, INSTRUMENTS, DEFAULT_INSTRUMENT } from "./sampler.js";
 import { KeyboardController } from "../core/KeyboardController.js";
+import { midiLabel, NOTE_NAMES } from "../core/global.js";
 
 const overlay        = document.getElementById('start-overlay');
 const startBtn       = document.getElementById('start-btn');
@@ -40,10 +41,6 @@ for (const [key, meta] of Object.entries(INSTRUMENTS)) {
 }
 
 /* --- range label --- */
-const NOTE_NAMES = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
-function midiLabel(midi) {
-    return `${NOTE_NAMES[midi % 12]}${Math.floor(midi / 12) - 1}`;
-}
 function updateRangeLabel() {
     rangeLabel.textContent = `${midiLabel(piano.range.min)} – ${midiLabel(piano.range.max)}`;
 }
