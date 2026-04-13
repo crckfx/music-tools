@@ -75,6 +75,16 @@ export class KeyboardController {
         this._up = this._keyup.bind(this);
         document.addEventListener('keydown', this._dn);
         document.addEventListener('keyup',   this._up);
+
+        this._blur = () => this.allOff();
+        window.addEventListener('blur', this._blur);
+
+        // handle browser edge cases such as firefox launching 'find' dialogues for `/` and `'` 
+        this._press = (e) => {
+            if (this._shouldIgnore(e)) return;
+            if (MAPPED_CODES.has(e.code)) e.preventDefault();
+        };
+        document.addEventListener('keypress', this._press);        
     }
 
     setQOctave(n) { this.qOctave = n; }
@@ -99,6 +109,8 @@ export class KeyboardController {
         this.allOff();
         document.removeEventListener('keydown', this._dn);
         document.removeEventListener('keyup',   this._up);
+        window.removeEventListener('blur', this._blur);
+        document.removeEventListener('keypress', this._press);
     }
 
     // ─────────────────────────────────────────────────────────

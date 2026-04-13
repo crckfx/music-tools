@@ -53,9 +53,9 @@ const piano = new PianoWidget(canvas, container, {
     touchAction:   'none',
 });
 
-const synth = new MiniSynth();
 const sampler = new SamplerEngine({ instrument: 'acoustic_guitar_nylon' });
 const soundfontReady = sampler.preload();
+let kb;
 
 const gestureReady = new Promise(resolve => {
     const handler = () => resolve();
@@ -66,7 +66,13 @@ const gestureReady = new Promise(resolve => {
 
 Promise.all([soundfontReady, gestureReady]).then(async () => {
     await sampler.activate();
-    // instantiate PianoWidget, KeyboardController, wire everything, call update()
+
+/* ═══════════════════════════════════════════════════════════
+   KEYBOARD CONTROLLER
+═══════════════════════════════════════════════════════════ */
+
+kb = new KeyboardController({ ...makeKeyboardHandlers(piano, sampler), zOctave: 2, qOctave: 3, });
+
 });
 
 const activePointers = new Map(); // pointerId → key
@@ -353,7 +359,7 @@ function update() {
     piano.setDimmedNotes(dimmed);
 
     // Kill any held notes that are no longer in scale after a settings change
-    synth.allOff();
+    sampler.allOff();
     piano.clearPressedNotes();
     activePointers.clear();
 
@@ -434,23 +440,23 @@ piano.onKeyEvent = (key, type, e) => {
     if (type === 'down' && key) {
         activePointers.set(e.pointerId, key);
         piano.addPressedNote(key.midi);
-        synth.noteOn(key.midi);
+        sampler.noteOn(key.midi);
     }
     if (type === 'move') {
         const prev = activePointers.get(e.pointerId);
         if (!prev) return;
         if (!key || key.midi === prev.midi) return;
         piano.removePressedNote(prev.midi);
-        synth.noteOff(prev.midi);
+        sampler.noteOff(prev.midi);
         piano.addPressedNote(key.midi);
-        synth.noteOn(key.midi);
+        sampler.noteOn(key.midi);
         activePointers.set(e.pointerId, key);
     }
     if (type === 'up' || type === 'cancel' || type === 'leave') {
         const prev = activePointers.get(e.pointerId);
         if (prev) {
             piano.removePressedNote(prev.midi);
-            synth.noteOff(prev.midi);
+            sampler.noteOff(prev.midi);
         }
         activePointers.delete(e.pointerId);
     }
@@ -458,18 +464,12 @@ piano.onKeyEvent = (key, type, e) => {
 
 document.addEventListener('visibilitychange', () => {
     if (document.hidden) {
-        synth.allOff();
+        sampler.allOff();
         piano.clearPressedNotes();
         activePointers.clear();
         kb.allOff();
     }
 });
-
-/* ═══════════════════════════════════════════════════════════
-   KEYBOARD CONTROLLER
-═══════════════════════════════════════════════════════════ */
-
-const kb = new KeyboardController({ ...makeKeyboardHandlers(piano, synth), zOctave: 2, qOctave: 3, });
 
 /* ═══════════════════════════════════════════════════════════
    INIT
