@@ -13,7 +13,7 @@ export class PianoWidget {
     static DEFAULTS = {
         blackHeightRatio: 0.61,
         blackWidthRatio: 0.65,
-        minWhiteWidth: 28,
+        minWhiteWidth: 36,
         insetTop: 0,
         insetSides: 5,
         insetBottom: 5,
