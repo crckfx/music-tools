@@ -24,9 +24,10 @@ export const DEFAULT_INSTRUMENT = 'acoustic_grand_piano';
    SAMPLER ENGINE
 =========================== */
 export class SamplerEngine {
-    constructor() {
+    constructor(options = {}) {
         this.ctx = null;
         this.instrument = null;
+        this._instrumentName = options.instrument ?? DEFAULT_INSTRUMENT; // maybe check if the instrument is in instruments, or check the sampler library, instead of just trusting it
         this.voices = new Map(); // midi → node returned by play()
         this._release = RELEASE;
     }
@@ -43,7 +44,7 @@ export class SamplerEngine {
         }
         this.ctx = new AudioContext();
         if (this.ctx.state === 'suspended') await this.ctx.resume();
-        await this._load(DEFAULT_INSTRUMENT, onProgress);
+        await this._load(this._instrumentName, onProgress);
     }
 
     async loadInstrument(name, onProgress) {
@@ -67,12 +68,26 @@ export class SamplerEngine {
                 gain: 8.0,
                 destination: this.master, // hook instrument up to master
             },
-
         );
-
         if (meta.release) this._release = meta.release;
         onProgress?.('');
     }
+
+    preload() {
+        const url = window.Soundfont.nameToUrl(this._instrumentName, 'MusyngKite');
+        this._fetchPromise = fetch(url); // no .json() — just warms the cache
+        return this._fetchPromise;
+    }
+
+    async activate() {
+        this.ctx = new AudioContext();
+        await this._fetchPromise; // ensure fetch is done before handing to Soundfont
+        this.instrument = await window.Soundfont.instrument(this.ctx, this._instrumentName, {
+            soundfont: 'MusyngKite',
+            gain: 8.0,
+        });
+    }
+
 
     noteOn(midi, velocity = 100) {
         if (!this.ready) return;

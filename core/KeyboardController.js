@@ -153,5 +153,5 @@ export class KeyboardController {
 
         const midi = this._midiForCode(e.code);
         if (midi !== null) this.onNoteOff(midi);
-    }
+    }   
 }

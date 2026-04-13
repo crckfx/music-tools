@@ -1,32 +1,38 @@
-import { PianoWidget  } from "../core/PianoWidget.js";
-import { SamplerEngine, INSTRUMENTS, DEFAULT_INSTRUMENT } from "./sampler.js";
+import { PianoWidget } from "../core/PianoWidget.js";
+import { SamplerEngine, INSTRUMENTS, DEFAULT_INSTRUMENT } from "../core/sampler.js";
 import { KeyboardController } from "../core/KeyboardController.js";
-import { midiLabel, NOTE_NAMES } from "../core/global.js";
+import { makeKeyboardHandlers, midiLabel, NOTE_NAMES } from "../core/global.js";
 
-const overlay        = document.getElementById('start-overlay');
-const startBtn       = document.getElementById('start-btn');
-const loadStatus     = document.getElementById('load-status');
-const app            = document.getElementById('app');
-const rangeLabel     = document.getElementById('range-label');
-const liveText       = document.getElementById('live-text');
-const instrumentSel  = document.getElementById('instrument-select');
-const canvas         = document.getElementById('piano');
-const container      = document.getElementById('container');
+const overlay = document.getElementById('start-overlay');
+const startBtn = document.getElementById('start-btn');
+const loadStatus = document.getElementById('load-status');
+const app = document.getElementById('app');
+const rangeLabel = document.getElementById('range-label');
+const liveText = document.getElementById('live-text');
+const instrumentSel = document.getElementById('instrument-select');
+const canvas = document.getElementById('piano');
+const container = document.getElementById('container');
+
+const rangeStart = 48;
+const rangeLength = 31;
+// const rangeLength = someWidth > 640 ? 31 : 24;
+// imagine like, "available width is over 640px, so make length 31, not 24"
+
 
 /* --- widget --- */
 const piano = new PianoWidget(canvas, container, {
-    touchAction:        'none',
-    whiteColor:         '#f0f0f8',
-    blackColor:         '#18181f',
-    borderColor:        '#4a4a5a',
-    borderWidth:        1.5,
-    pressColor:         '#e8a045',
-    markColor:          '#e8a045',
-    markRootColor:      '#f0c070',
-    markTextColor:      '#1a1000',
+    touchAction: 'none',
+    whiteColor: '#f0f0f8',
+    blackColor: '#18181f',
+    borderColor: '#4a4a5a',
+    borderWidth: 1.5,
+    pressColor: '#e8a045',
+    markColor: '#e8a045',
+    markRootColor: '#f0c070',
+    markTextColor: '#1a1000',
+    rangeMin: rangeStart,
+    rangeMax: rangeStart + rangeLength,
 });
-
-piano.setRange(48, 72);
 
 /* --- engine --- */
 const sampler = new SamplerEngine();
@@ -54,10 +60,10 @@ function nudge(delta) {
     activePointers.clear();
     updateRangeLabel();
 }
-document.getElementById('oct-down').addEventListener('click',  () => nudge(-12));
+document.getElementById('oct-down').addEventListener('click', () => nudge(-12));
 document.getElementById('semi-down').addEventListener('click', () => nudge(-1));
-document.getElementById('semi-up').addEventListener('click',   () => nudge(1));
-document.getElementById('oct-up').addEventListener('click',    () => nudge(12));
+document.getElementById('semi-up').addEventListener('click', () => nudge(1));
+document.getElementById('oct-up').addEventListener('click', () => nudge(12));
 
 /* --- instrument change --- */
 instrumentSel.addEventListener('change', async () => {
@@ -111,19 +117,7 @@ document.addEventListener('visibilitychange', () => {
 });
 
 /* --- keyboard --- */
-function playNote(midi) {
-    if (!sampler.ready) return;
-    if (piano.pressedNotes.has(midi)) return;
-    piano.addPressedNote(midi);
-    sampler.noteOn(midi);
-}
-
-function releaseNote(midi) {
-    piano.removePressedNote(midi);
-    sampler.noteOff(midi);
-}
-
-const kb = new KeyboardController({ onNoteOn: playNote, onNoteOff: releaseNote, zOctave: 3, qOctave: 4 });
+const kb = new KeyboardController({ ...makeKeyboardHandlers(piano, sampler), zOctave: 3, qOctave: 4 });
 
 /* --- start --- */
 startBtn.addEventListener('click', async () => {

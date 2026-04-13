@@ -1,4 +1,5 @@
-import { midiLabel, NOTE_NAMES } from "../core/global.js";
+import { makeKeyboardHandlers, midiLabel, NOTE_NAMES } from "../core/global.js";
+import { KeyboardController } from "../core/KeyboardController.js";
 import { PianoWidget } from "../core/PianoWidget.js";
 
 const canvas     = document.getElementById('piano');
@@ -6,6 +7,8 @@ const container  = document.getElementById('container');
 const rangeLabel = document.getElementById('range-label');
 
 const piano = new PianoWidget(canvas, container, {
+    rangeMin:           48,
+    rangeMax:           79,
     touchAction:        'none',
     whiteColor:         '#f0f0f8',
     blackColor:         '#18181f',
@@ -17,7 +20,6 @@ const piano = new PianoWidget(canvas, container, {
     markTextColor:      '#001020',
 });
 
-piano.setRange(48, 72);
 
 /* --- range label --- */
 function updateRangeLabel() {
@@ -59,3 +61,5 @@ piano.onKeyEvent = (key, type, e) => {
         activePointers.delete(e.pointerId);
     }
 };
+
+const kb = new KeyboardController({ ...makeKeyboardHandlers(piano, null), zOctave: 3, qOctave: 4, });

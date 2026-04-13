@@ -29,6 +29,8 @@ export class PianoWidget {
         touchAction: null,   // null = don't set; 'none' = block all touch scroll
         dimWhiteColor: '#888888', // color for out-of-scale white keys
         dimBlackColor: '#888888', // color for out-of-scale black keys
+        rangeMin: 48,
+        rangeMax: 72,        
     };
 
     constructor(canvas, container, options = {}) {
@@ -37,7 +39,7 @@ export class PianoWidget {
         this.container = container;
         this.config = { ...PianoWidget.DEFAULTS, ...options };
 
-        this.range = { min: 60, max: 84 };
+        this.range = { min: this.config.rangeMin, max: this.config.rangeMax };
         this.whiteKeys = [];
         this.blackKeys = [];
         this.markedNotes = new Set();
@@ -157,109 +159,109 @@ export class PianoWidget {
     /* ===========================
        BUILD KEYS & GEOMETRY
     =========================== */
-_buildKeys() {
-    const cfg = this.config;
-    this.whiteKeys = [];
-    this.blackKeys = [];
+    _buildKeys() {
+        const cfg = this.config;
+        this.whiteKeys = [];
+        this.blackKeys = [];
 
-    const containerWidth = this.container.clientWidth || 640;
-    const startIsBlack = BLACK_PCS.has(this.range.min % 12);
-    const endIsBlack   = BLACK_PCS.has(this.range.max % 12);
+        const containerWidth = this.container.clientWidth || 640;
+        const startIsBlack = BLACK_PCS.has(this.range.min % 12);
+        const endIsBlack   = BLACK_PCS.has(this.range.max % 12);
 
-    // Build full key range including compensating half-white if start is black
-    const buildMin = startIsBlack ? this.range.min - 1 : this.range.min;
-    const buildMax = endIsBlack ? this.range.max + 1 : this.range.max;
+        // Build full key range including compensating half-white if start is black
+        const buildMin = startIsBlack ? this.range.min - 1 : this.range.min;
+        const buildMax = endIsBlack ? this.range.max + 1 : this.range.max;
 
-    // Count whites for width calculation
-    let whiteCount = 0;
-    for (let m = buildMin; m <= buildMax; m++) {
-        if (WHITE_PCS.has(m % 12)) whiteCount++;
-    }
+        // Count whites for width calculation
+        let whiteCount = 0;
+        for (let m = buildMin; m <= buildMax; m++) {
+            if (WHITE_PCS.has(m % 12)) whiteCount++;
+        }
 
-    // Adjust divisor: start half-white contributes 0.5, end half-white contributes 0.5 if ending on black
-    let divisor = whiteCount;
-    if (startIsBlack) divisor -= 0.5;   // first white only half visible
-    if (endIsBlack) divisor -= 0.5;     // last white only half visible
+        // Adjust divisor: start half-white contributes 0.5, end half-white contributes 0.5 if ending on black
+        let divisor = whiteCount;
+        if (startIsBlack) divisor -= 0.5;   // first white only half visible
+        if (endIsBlack) divisor -= 0.5;     // last white only half visible
 
-    const naturalWhiteWidth = containerWidth / divisor;
-    const whiteWidth = Math.max(naturalWhiteWidth, cfg.minWhiteWidth);
-    const blackWidth = whiteWidth * cfg.blackWidthRatio;
+        const naturalWhiteWidth = containerWidth / divisor;
+        const whiteWidth = Math.max(naturalWhiteWidth, cfg.minWhiteWidth);
+        const blackWidth = whiteWidth * cfg.blackWidthRatio;
 
-    const whiteHeight = cfg.whiteHeight != null
-        ? cfg.whiteHeight
-        : Math.min(300, Math.max(180, Math.floor(containerWidth / 4)));
-    const blackHeight = Math.round(whiteHeight * cfg.blackHeightRatio);
+        const whiteHeight = cfg.whiteHeight != null
+            ? cfg.whiteHeight
+            : Math.min(300, Math.max(180, Math.floor(containerWidth / 4)));
+        const blackHeight = Math.round(whiteHeight * cfg.blackHeightRatio);
 
-    this._whiteWidth = whiteWidth;
-    this._blackWidth = blackWidth;
+        this._whiteWidth = whiteWidth;
+        this._blackWidth = blackWidth;
 
-    const xOffset = startIsBlack ? whiteWidth / 2 : 0;
+        const xOffset = startIsBlack ? whiteWidth / 2 : 0;
 
-    const whiteIndexByMidi = new Map();
-    let whiteIndex = 0;
+        const whiteIndexByMidi = new Map();
+        let whiteIndex = 0;
 
-    for (let m = buildMin; m <= buildMax; m++) {
-        if (!WHITE_PCS.has(m % 12)) continue;
-        whiteIndexByMidi.set(m, whiteIndex);
-        this.whiteKeys.push({
-            midi: m, type: 'white',
-            x: whiteIndex * whiteWidth - xOffset,
-            y: 0, w: whiteWidth, h: whiteHeight,
-        });
-        whiteIndex++;
-    }
+        for (let m = buildMin; m <= buildMax; m++) {
+            if (!WHITE_PCS.has(m % 12)) continue;
+            whiteIndexByMidi.set(m, whiteIndex);
+            this.whiteKeys.push({
+                midi: m, type: 'white',
+                x: whiteIndex * whiteWidth - xOffset,
+                y: 0, w: whiteWidth, h: whiteHeight,
+            });
+            whiteIndex++;
+        }
 
-    for (let m = buildMin; m <= this.range.max; m++) {
-        if (!BLACK_PCS.has(m % 12)) continue;
-        const leftMidi = m - 1;
-        if (!whiteIndexByMidi.has(leftMidi)) continue;
-        const leftIdx = whiteIndexByMidi.get(leftMidi);
-        const leftKey = this.whiteKeys[leftIdx];
-        this.blackKeys.push({
-            midi: m, type: 'black',
-            x: leftKey.x + leftKey.w - blackWidth / 2,
-            y: 0, w: blackWidth, h: blackHeight,
-        });
-    }
-
-    // Optional: add left/right outer blacks for non-start-black ranges
-    if (!startIsBlack) {
-        const leftOuter = this.range.min - 1;
-        if (leftOuter >= 0 && BLACK_PCS.has(leftOuter % 12)) {
-            this.blackKeys.unshift({
-                midi: leftOuter, type: 'black',
-                x: this.whiteKeys[0].x - blackWidth / 2,
+        for (let m = buildMin; m <= this.range.max; m++) {
+            if (!BLACK_PCS.has(m % 12)) continue;
+            const leftMidi = m - 1;
+            if (!whiteIndexByMidi.has(leftMidi)) continue;
+            const leftIdx = whiteIndexByMidi.get(leftMidi);
+            const leftKey = this.whiteKeys[leftIdx];
+            this.blackKeys.push({
+                midi: m, type: 'black',
+                x: leftKey.x + leftKey.w - blackWidth / 2,
                 y: 0, w: blackWidth, h: blackHeight,
             });
         }
-    }
-    const rightOuter = this.range.max + 1;
-    if (!startIsBlack && BLACK_PCS.has(rightOuter % 12)) {
+
+        // Optional: add left/right outer blacks for non-start-black ranges
+        if (!startIsBlack) {
+            const leftOuter = this.range.min - 1;
+            if (leftOuter >= 0 && BLACK_PCS.has(leftOuter % 12)) {
+                this.blackKeys.unshift({
+                    midi: leftOuter, type: 'black',
+                    x: this.whiteKeys[0].x - blackWidth / 2,
+                    y: 0, w: blackWidth, h: blackHeight,
+                });
+            }
+        }
+        const rightOuter = this.range.max + 1;
+        if (!startIsBlack && BLACK_PCS.has(rightOuter % 12)) {
+            const lastWhite = this.whiteKeys[this.whiteKeys.length - 1];
+            this.blackKeys.push({
+                midi: rightOuter, type: 'black',
+                x: lastWhite.x + lastWhite.w - blackWidth / 2,
+                y: 0, w: blackWidth, h: blackHeight,
+            });
+        }
+
+        // Set canvas dimensions
         const lastWhite = this.whiteKeys[this.whiteKeys.length - 1];
-        this.blackKeys.push({
-            midi: rightOuter, type: 'black',
-            x: lastWhite.x + lastWhite.w - blackWidth / 2,
-            y: 0, w: blackWidth, h: blackHeight,
-        });
+        const cssWidth = endIsBlack
+            ? lastWhite.x + lastWhite.w / 2 + blackWidth / 2   // half-white plus half-black for last black
+            : lastWhite.x + lastWhite.w;
+        const cssHeight = whiteHeight;
+        const dpr = window.devicePixelRatio || 1;
+
+        this.canvas.width = Math.round(cssWidth * dpr);
+        this.canvas.height = Math.round(cssHeight * dpr);
+        this.canvas.style.width = cssWidth + 'px';
+        this.canvas.style.height = cssHeight + 'px';
+        this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+        this._cssWidth = cssWidth;
+        this._cssHeight = cssHeight;
     }
-
-    // Set canvas dimensions
-    const lastWhite = this.whiteKeys[this.whiteKeys.length - 1];
-    const cssWidth = endIsBlack
-        ? lastWhite.x + lastWhite.w / 2 + blackWidth / 2   // half-white plus half-black for last black
-        : lastWhite.x + lastWhite.w;
-    const cssHeight = whiteHeight;
-    const dpr = window.devicePixelRatio || 1;
-
-    this.canvas.width = Math.round(cssWidth * dpr);
-    this.canvas.height = Math.round(cssHeight * dpr);
-    this.canvas.style.width = cssWidth + 'px';
-    this.canvas.style.height = cssHeight + 'px';
-    this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-
-    this._cssWidth = cssWidth;
-    this._cssHeight = cssHeight;
-}
     /* ===========================
        POINTER SURFACE
     =========================== */

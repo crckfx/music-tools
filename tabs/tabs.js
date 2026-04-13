@@ -2,7 +2,8 @@ import { PianoWidget } from "../core/PianoWidget.js";
 import { MiniSynth } from "../core/MiniSynth.js";
 import { GUITAR_TUNINGS, SCALES } from "../core/data.js";
 import { KeyboardController } from "../core/KeyboardController.js";
-import { midiLabel, NOTE_NAMES } from "../core/global.js";
+import { makeKeyboardHandlers, midiLabel, NOTE_NAMES } from "../core/global.js";
+import { SamplerEngine } from "../core/sampler.js";
 
 /* ═══════════════════════════════════════════════════════════
    DOM REFS
@@ -53,6 +54,21 @@ const piano = new PianoWidget(canvas, container, {
 });
 
 const synth = new MiniSynth();
+const sampler = new SamplerEngine({ instrument: 'acoustic_guitar_nylon' });
+const soundfontReady = sampler.preload();
+
+const gestureReady = new Promise(resolve => {
+    const handler = () => resolve();
+    window.addEventListener('pointerdown', handler, { once: true });
+    window.addEventListener('pointermove', handler, { once: true });
+    window.addEventListener('keydown',     handler, { once: true });
+});
+
+Promise.all([soundfontReady, gestureReady]).then(async () => {
+    await sampler.activate();
+    // instantiate PianoWidget, KeyboardController, wire everything, call update()
+});
+
 const activePointers = new Map(); // pointerId → key
 
 /* ═══════════════════════════════════════════════════════════
@@ -453,19 +469,7 @@ document.addEventListener('visibilitychange', () => {
    KEYBOARD CONTROLLER
 ═══════════════════════════════════════════════════════════ */
 
-function playNote(midi) {
-    if (piano.allowedNotes && !piano.allowedNotes.has(midi)) return;
-    if (piano.pressedNotes.has(midi)) return;
-    piano.addPressedNote(midi);
-    synth.noteOn(midi);
-}
-
-function releaseNote(midi) {
-    piano.removePressedNote(midi);
-    synth.noteOff(midi);
-}
-
-const kb = new KeyboardController({ onNoteOn: playNote, onNoteOff: releaseNote, zOctave: 2, qOctave: 3, });
+const kb = new KeyboardController({ ...makeKeyboardHandlers(piano, synth), zOctave: 2, qOctave: 3, });
 
 /* ═══════════════════════════════════════════════════════════
    INIT

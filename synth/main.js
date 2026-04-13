@@ -1,3 +1,5 @@
+import { makeKeyboardHandlers, midiLabel } from "../core/global.js";
+import { KeyboardController } from "../core/KeyboardController.js";
 import { PianoWidget } from "../core/PianoWidget.js";
 import { SynthEngine } from "./synth.js";
 
@@ -31,10 +33,10 @@ const piano = new PianoWidget(canvas, container, {
     blackHeightRatio: 0.61,
     blackWidthRatio: 0.65,
     minWhiteWidth: 28,
-});
 
-// console.log(rangeLengthInput.value);
-piano.setRange(48, 48+Number(rangeLengthInput.value)); // C3–C5 default
+    rangeMin: 48,
+    rangeMax: 48 + Number(rangeLengthInput.value),
+});
 
 /* ===========================
    SYNTH ENGINE
@@ -44,13 +46,6 @@ const synth = new SynthEngine();
 /* ===========================
    RANGE LABEL UTILITY
 =========================== */
-
-function midiLabel(midi) {
-    const name = NOTE_NAMES[midi % 12];
-    const octave = Math.floor(midi / 12) - 1;
-    return `${name}${octave}`;
-}
-
 function updateRangeLabel() {
     rangeLabel.textContent = `${midiLabel(piano.range.min)} – ${midiLabel(piano.range.max)}`;
 }
@@ -150,13 +145,15 @@ function modifyRangeSize(length) {
     synth.allOff();
     piano.clearPressedNotes();
     activePointers.clear();
- 
+
     piano.setRange(min, newMax);
-    
+
     updateRangeLabel();
 }
-rangeLengthInput.addEventListener('input', ()=> {
+rangeLengthInput.addEventListener('input', () => {
     console.log(rangeLengthInput.value);
     const newLength = Number(rangeLengthInput.value);
     modifyRangeSize(newLength);
 })
+
+const kb = new KeyboardController({ ...makeKeyboardHandlers(piano, synth), zOctave: 3, qOctave: 4 });

@@ -1,6 +1,6 @@
 import { PianoWidget } from "../core/PianoWidget.js";
 import { SynthEngine } from "../synth/synth.js";
-import { app_profiles, midiLabel, NOTE_NAMES } from "../core/global.js";
+import { app_profiles, makeKeyboardHandlers, midiLabel, NOTE_NAMES } from "../core/global.js";
 import { KeyboardController } from "../core/KeyboardController.js";
 
 const colors = app_profiles.showcase.colors;
@@ -36,10 +36,10 @@ const piano = new PianoWidget(canvas, container, {
     blackHeightRatio: 0.61,
     blackWidthRatio: 0.65,
     minWhiteWidth: 28,
-});
+    rangeMin: 48,
+    rangeMax: 48 + Number(rangeLengthInput.value),
 
-// console.log(rangeLengthInput.value);
-piano.setRange(48, 48+Number(rangeLengthInput.value)); // C3–C5 default
+});
 
 /* ===========================
    SYNTH ENGINE
@@ -148,12 +148,12 @@ function modifyRangeSize(length) {
     synth.allOff();
     piano.clearPressedNotes();
     activePointers.clear();
- 
+
     piano.setRange(min, newMax);
-    
+
     updateRangeLabel();
 }
-rangeLengthInput.addEventListener('input', ()=> {
+rangeLengthInput.addEventListener('input', () => {
     const newLength = Number(rangeLengthInput.value);
     modifyRangeSize(newLength);
 });
@@ -161,18 +161,9 @@ rangeLengthInput.addEventListener('input', ()=> {
 
 // ---------------------------------------------------------------
 // keyboard handling
-function playNote(midi) {
-    if (piano.allowedNotes && !piano.allowedNotes.has(midi)) return;
-    if (piano.pressedNotes.has(midi)) return;
-    piano.addPressedNote(midi);
-    synth.noteOn(midi);
-}
-
-function releaseNote(midi) {
-    piano.removePressedNote(midi);
-    synth.noteOff(midi);
-}
-
-const kb = new KeyboardController({ onNoteOn: playNote, onNoteOff: releaseNote, zOctave: 3, qOctave: 4, });
+const kb = new KeyboardController({ 
+    ...makeKeyboardHandlers(piano, synth),    
+    zOctave: 3, qOctave: 4, 
+});
 // ---------------------------------------------------------------
 
