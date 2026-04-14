@@ -209,7 +209,7 @@ html, body {
     align-items: center;
     justify-content: center;
     padding: 24px 16px;
-    overflow: hidden;
+    /* overflow-x: hidden; */
 }
 
 .stage {
@@ -226,7 +226,8 @@ html, body {
     bottom: 0;
     left: 50%;
     transform: translateX(-50%);
-    width: 110%;
+    width: 100%;
+    overflow: hidden;
     height: 220px;
     background: radial-gradient(ellipse at bottom center,
         var(--accent-glow) 0%,
@@ -294,6 +295,9 @@ html, body {
         0 0 80px rgba(124,106,247,0.06);
     position: relative;
     z-index: 1;
+    /* until we figure out a better way to clamp so scroll is available, set a max-height */
+    max-height: 80vh; 
+
 }
 
 canvas { display: block; }
