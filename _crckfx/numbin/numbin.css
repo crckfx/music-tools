@@ -17,7 +17,6 @@
     min-width: 5ch;
     padding: 8px;
     cursor: ns-resize;
-    width: 5ch;
 }
 
 /* Hover feedback identical to old control */
@@ -48,7 +47,8 @@
     -moz-appearance: textfield;
     -webkit-appearance: textfield;
 
-    user-select: text;
+    /* user-select: text; */
+    user-select: none;
     box-sizing: border-box;
     /* min-width: 5ch; */
 }

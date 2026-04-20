@@ -56,7 +56,9 @@ export class Numbin {
 
     get value() {
         const n = parseInt(this.input.value, 10);
-        return Number.isFinite(n) ? n : null;
+        if (!Number.isFinite(n)) return null;
+        if (n < this.min || n > this.max) return null;
+        return n;
     }
 
     set value(v) {
@@ -192,6 +194,14 @@ export class Numbin {
         });
 
         this.input.addEventListener("beforeinput", e => this.handleBeforeInput(e));
+
+        this.input.addEventListener("input", e => {
+            const n = parseInt(this.input.value, 10);
+            const inRange = Number.isFinite(n) && n >= this.min && n <= this.max;
+            if (!inRange) {
+                e.stopImmediatePropagation();  // don't let it reach downstream listeners
+            }
+        });
 
         // this should probably be handled upstream wherever possible
         this.input.addEventListener('blur', () => {

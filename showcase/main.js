@@ -158,6 +158,16 @@ rangeLengthInput.addEventListener('input', () => {
     modifyRangeSize(newLength);
 });
 
+const kbOctaveSelect = document.getElementById('kb-octave');
+kbOctaveSelect.addEventListener('change', () => {
+    const z = Number(kbOctaveSelect.value);
+    kb.allOff();
+    piano.clearPressedNotes();
+    synth.allOff();
+    activePointers.clear();
+    kb.setZOctave(z);
+    kb.setQOctave(z + 1);
+});
 
 // ---------------------------------------------------------------
 // keyboard handling
@@ -166,6 +176,3 @@ const kb = new KeyboardController({
     zOctave: 3, qOctave: 4, 
 });
 // ---------------------------------------------------------------
-
-// import { initNumbins } from "../_external/numbin/Numbin.js";
-// initNumbins();

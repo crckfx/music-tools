@@ -1,5 +1,41 @@
 :root {
-    --accent:      #064ba5;
-    --accent-dim:  #33557e;
+    --accent: #064ba5;
+    --accent-dim: #33557e;
     --accent-glow: #064ba52e;
+}
+
+
+.dumb-row {
+    position: relative;
+    /* same width as canvas, so it scrolls with it */
+    display: flex;
+    height: 20px;
+    padding-bottom: 20px;
+}
+
+.dumb-row .note {
+    position: absolute;
+
+}
+
+.dumb-row .note::after {
+    background-color: red;
+    width: 4px;
+    height: 16px;
+    display: inline-flex;
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 100%;
+    transform: translateX(-50%);
+}
+
+.dumb-row .left {
+    left: var(--start-key-cx);
+    transform: translateX(-50%);
+}
+
+.dumb-row .right {
+    left: var(--end-key-cx);
+    transform: translateX(-50%);
 }

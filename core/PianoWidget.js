@@ -178,10 +178,10 @@ export class PianoWidget {
             if (WHITE_PCS.has(m % 12)) whiteCount++;
         }
 
-        // Adjust divisor: start half-white contributes 0.5, end half-white contributes 0.5 if ending on black
+        // Adjust divisor: half-whites at black edges count as 0.5
         let divisor = whiteCount;
-        if (startIsBlack) divisor -= 0.5;   // first white only half visible
-        if (endIsBlack) divisor -= 0.5;     // last white only half visible
+        if (startIsBlack) divisor -= 0.5;
+        if (endIsBlack)   divisor -= 0.5;
 
         const naturalWhiteWidth = containerWidth / divisor;
         const whiteWidth = Math.max(naturalWhiteWidth, cfg.minWhiteWidth);
@@ -236,20 +236,21 @@ export class PianoWidget {
             }
         }
         const rightOuter = this.range.max + 1;
-        if (!startIsBlack && BLACK_PCS.has(rightOuter % 12)) {
-            const lastWhite = this.whiteKeys[this.whiteKeys.length - 1];
-            this.blackKeys.push({
-                midi: rightOuter, type: 'black',
-                x: lastWhite.x + lastWhite.w - blackWidth / 2,
-                y: 0, w: blackWidth, h: blackHeight,
-            });
+        if (!endIsBlack && BLACK_PCS.has(rightOuter % 12)) {
+            // When endIsBlack=false, range.max is a white key — find it directly.
+            const lastRangeWhite = whiteIndexByMidi.get(this.range.max);
+            if (lastRangeWhite != null) {
+                const lastKey = this.whiteKeys[lastRangeWhite];
+                this.blackKeys.push({
+                    midi: rightOuter, type: 'black',
+                    x: lastKey.x + lastKey.w - blackWidth / 2,
+                    y: 0, w: blackWidth, h: blackHeight,
+                });
+            }
         }
 
-        // Set canvas dimensions
-        const lastWhite = this.whiteKeys[this.whiteKeys.length - 1];
-        const cssWidth = endIsBlack
-            ? lastWhite.x + lastWhite.w / 2 + blackWidth / 2   // half-white plus half-black for last black
-            : lastWhite.x + lastWhite.w;
+        // Set canvas dimensions — authoritative from whiteWidth, not key geometry.
+        const cssWidth = whiteWidth * divisor;
         const cssHeight = whiteHeight;
         const dpr = window.devicePixelRatio || 1;
 
@@ -261,6 +262,12 @@ export class PianoWidget {
 
         this._cssWidth = cssWidth;
         this._cssHeight = cssHeight;
+
+        const allKeys = [...this.whiteKeys, ...this.blackKeys];
+        const firstKey = allKeys.find(k => k.midi === this.range.min);
+        const lastKey  = allKeys.find(k => k.midi === this.range.max);
+        this.container.style.setProperty('--start-key-cx', `${firstKey.x + firstKey.w / 2}px`);
+        this.container.style.setProperty('--end-key-cx',   `${lastKey.x  + lastKey.w  / 2}px`);        
     }
     /* ===========================
        POINTER SURFACE

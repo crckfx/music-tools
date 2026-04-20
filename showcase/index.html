@@ -1,21 +1,24 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- <link rel="stylesheet" href="../_external/numbin/numbin.css"> -->
+    <link rel="stylesheet" href="../_crckfx/numbin/numbin.css">
     <title>PIANO WIDGET</title>
     <link rel="stylesheet" href="../base.css">
     <link rel="stylesheet" href="../controls-panel.css">
     <link rel="stylesheet" href="./style.css">
 
+    <link rel="stylesheet" href="../mt_numbin.css">
 
     <link rel="modulepreload" href="../core/global.js">
     <script type="module">
         import { applyProfileToElement } from '../core/global.js';
         applyProfileToElement(document.getElementById('app'), 'showcase');
-    </script>        
+    </script>
 </head>
+
 <body>
 
     <div id="start-overlay">
@@ -46,14 +49,31 @@
                         <span class="row-label">Piano</span>
                         <div class="control-group">
                             <label for="num-keys">Number of keys</label>
-                            <input type="number" id="num-keys" value="30" min="1" max="64" step="1">
-                            
+                            <div class="numbin" data-value="30" data-min="12" data-max="64" data-step="1">
+                                <input type="number" id="num-keys">
+                            </div>
+                        </div>
+                        <div class="control-group">
                             <label for="keys-range-start">Starting Key</label>
                             <input type="number" id="keys-range-start">
-                            <div class="numbin" data-value="0" data-min="0" data-max="127" data-step="1" data-loop="false"></div>
-
                         </div>
-                    </div>                    
+                    </div>
+                    <div class="controls-row">
+                        <span class="row-label">Keyboard</span>
+                        <div class="controls-row">
+                            <div class="control-group">
+                                <label for="kb-octave">Octave</label>
+                                <select id="kb-octave">
+                                    <option value="1">Z: C1 / Q: C2</option>
+                                    <option value="2">Z: C2 / Q: C3</option>
+                                    <option value="3" selected>Z: C3 / Q: C4</option>
+                                    <option value="4">Z: C4 / Q: C5</option>
+                                    <option value="5">Z: C5 / Q: C6</option>
+                                    <option value="6">Z: C6 / Q: C7</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="nudge-row">
@@ -67,7 +87,23 @@
                     </div>
                 </div>
 
+                
                 <div id="container">
+                    <!-- not a real nudge row just another row -->
+                    <!-- although 2 dumb spans with space-between is almost it -->
+                    <!-- still, to do it properly you'd need to center x to the corresponding note "A3", "C#6", etc. -->
+                    <!-- maybe you could do something with css variables that get set by the widget. 
+                     eg. when starting and ending note are known, notify a left and a right channel. 
+                     we essentially draw (with html) something that corresponds to the canvas.
+                     or it could be case based AND canvas linked. whatever's easiest.
+                     though we'd need to ensure it can handle a canvas that overflows. so maybe it's tough.
+                      -->
+                    <div class="dumb-row">
+                        <!-- these things actually spill onto the piano; 
+                         it's a nice way to test their alignment -->
+                        <span class="note left">hi</span>
+                        <span class="note right">doug</span>
+                    </div>
                     <canvas id="piano"></canvas>
                 </div>
 
@@ -79,6 +115,11 @@
         </main>
     </div>
 
+    <script type="module">
+        import { initNumbins } from "../_crckfx/numbin/Numbin.js"
+        initNumbins();
+    </script>
     <script type="module" src="./main.js"></script>
 </body>
+
 </html>

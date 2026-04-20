@@ -1,0 +1,19 @@
+.control-group .numbin>input {
+  background: var(--bg-raised);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  padding: 5px 8px;
+  cursor: pointer;
+  outline: none;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.control-group .numbin>input {
+  width: 58px;
+  -webkit-appearance: textfield;
+  appearance: textfield;
+}
