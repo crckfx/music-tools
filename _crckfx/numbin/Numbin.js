@@ -196,10 +196,11 @@ export class Numbin {
         this.input.addEventListener("beforeinput", e => this.handleBeforeInput(e));
 
         this.input.addEventListener("input", e => {
+            if (e._trusted) return; // subclass-dispatched event, let it through
             const n = parseInt(this.input.value, 10);
             const inRange = Number.isFinite(n) && n >= this.min && n <= this.max;
             if (!inRange) {
-                e.stopImmediatePropagation();  // don't let it reach downstream listeners
+                e.stopImmediatePropagation();
             }
         });
 
@@ -224,21 +225,27 @@ export class Numbin {
 
 
 // ---------- Numbin setup ----------
-export function initNumbins() {
+export function initAllNumbins() {
     const list = document.querySelectorAll(".numbin");
     if (!list.length) return; // nothing to do
 
     for (const div of list) {
-        if (div.__numbinInstance) continue; // already done
-        const nb = new Numbin(div, {
-            min: +div.dataset.min || 0,
-            max: +div.dataset.max || 9999,
-            step: +div.dataset.step || 1,
-            loop: div.dataset.loop === "true",
-            draggable: !(div.dataset.draggable === "false"), // default to true
-            typeable: !(div.dataset.typeable === "false"), // default to true
-            scrollable: !(div.dataset.scrollable === "false"), // default to true
-        });
-        div.__numbinInstance = nb;
+        initNumbin(div);
     }
+}
+
+export function initNumbin(div) {
+    if (div.__numbinInstance) return null; // already done
+    const nb = new Numbin(div, {
+        min: +div.dataset.min || 0,
+        max: +div.dataset.max || 9999,
+        step: +div.dataset.step || 1,
+        loop: div.dataset.loop === "true",
+        draggable: !(div.dataset.draggable === "false"), // default to true
+        typeable: !(div.dataset.typeable === "false"), // default to true
+        scrollable: !(div.dataset.scrollable === "false"), // default to true
+    });
+    div.__numbinInstance = nb;
+
+    return nb;
 }

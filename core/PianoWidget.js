@@ -30,7 +30,7 @@ export class PianoWidget {
         dimWhiteColor: '#888888', // color for out-of-scale white keys
         dimBlackColor: '#888888', // color for out-of-scale black keys
         rangeMin: 48,
-        rangeMax: 72,        
+        rangeMax: 72,
     };
 
     constructor(canvas, container, options = {}) {
@@ -46,7 +46,7 @@ export class PianoWidget {
         this.markedRootNotes = new Set();
         this.pressedNotes = new Set();
         this.allowedNotes = null;   // null = all keys pass; Set = only these midi values are hittable
-        this.dimmedNotes  = new Set(); // purely visual: these keys render muted
+        this.dimmedNotes = new Set(); // purely visual: these keys render muted
         this.onKeyEvent = null;
 
         if (this.config.touchAction) {
@@ -80,9 +80,13 @@ export class PianoWidget {
        PUBLIC API
     =========================== */
     setRange(min, max) {
+        min = Math.max(0, min);
+        max = Math.min(127, max);
+        if (min >= max) return false;
         this.range = { min, max };
         this._buildKeys();
         this.render();
+        return true;
     }
 
     shiftRange(delta) {
@@ -166,7 +170,7 @@ export class PianoWidget {
 
         const containerWidth = this.container.clientWidth || 640;
         const startIsBlack = BLACK_PCS.has(this.range.min % 12);
-        const endIsBlack   = BLACK_PCS.has(this.range.max % 12);
+        const endIsBlack = BLACK_PCS.has(this.range.max % 12);
 
         // Build full key range including compensating half-white if start is black
         const buildMin = startIsBlack ? this.range.min - 1 : this.range.min;
@@ -181,7 +185,7 @@ export class PianoWidget {
         // Adjust divisor: half-whites at black edges count as 0.5
         let divisor = whiteCount;
         if (startIsBlack) divisor -= 0.5;
-        if (endIsBlack)   divisor -= 0.5;
+        if (endIsBlack) divisor -= 0.5;
 
         const naturalWhiteWidth = containerWidth / divisor;
         const whiteWidth = Math.max(naturalWhiteWidth, cfg.minWhiteWidth);
@@ -265,9 +269,9 @@ export class PianoWidget {
 
         const allKeys = [...this.whiteKeys, ...this.blackKeys];
         const firstKey = allKeys.find(k => k.midi === this.range.min);
-        const lastKey  = allKeys.find(k => k.midi === this.range.max);
+        const lastKey = allKeys.find(k => k.midi === this.range.max);
         this.container.style.setProperty('--start-key-cx', `${firstKey.x + firstKey.w / 2}px`);
-        this.container.style.setProperty('--end-key-cx',   `${lastKey.x  + lastKey.w  / 2}px`);        
+        this.container.style.setProperty('--end-key-cx', `${lastKey.x + lastKey.w / 2}px`);
     }
     /* ===========================
        POINTER SURFACE

@@ -2,6 +2,7 @@ import { PianoWidget } from "../core/PianoWidget.js";
 import { SynthEngine } from "../synth/synth.js";
 import { app_profiles, makeKeyboardHandlers, midiLabel, NOTE_NAMES } from "../core/global.js";
 import { KeyboardController } from "../core/KeyboardController.js";
+import { MidiNumbin } from "../_crckfx/numbin/MidiNumbin.js";
 
 const colors = app_profiles.showcase.colors;
 
@@ -16,6 +17,14 @@ const canvas = document.getElementById('piano');
 const container = document.getElementById('container');
 
 const rangeLengthInput = document.getElementById('num-keys');
+const rangeStartInput = document.getElementById('keys-range-start');
+
+const dumbRow = document.querySelector('.dumb-row');
+const dumbRowLeft = dumbRow.querySelector('.left');
+const dumbRowRight = dumbRow.querySelector('.right');
+
+const nb_keysRangeStart = document.getElementById('nb-keys-range-start');
+const krsNumbin = new MidiNumbin(nb_keysRangeStart, {min: 0, max: 127});
 
 /* ===========================
    WIDGET
@@ -53,27 +62,46 @@ function updateRangeLabel() {
     rangeLabel.textContent = `${midiLabel(piano.range.min)} – ${midiLabel(piano.range.max)}`;
 }
 
-updateRangeLabel();
+function syncControls() {
+    rangeLengthInput.value = piano.range.max - piano.range.min;
+    krsNumbin.value = piano.range.min;
+    updateRangeLabel();
+    updateDumbRow();
+}
 
 /* ===========================
    NUDGE CONTROLS
 =========================== */
-function nudge(delta) {
-    piano.shiftRange(delta);
-    // Kill any hanging voices — fingers may still be down
-    // but the notes they referenced are now stale.
-    synth.allOff();
-    piano.clearPressedNotes();
-    activePointers.clear();
-    updateRangeLabel();
+const nudgeBtns = {
+    octDown: document.getElementById('oct-down'),
+    semiDown: document.getElementById('semi-down'),
+    semiUp: document.getElementById('semi-up'),
+    octUp: document.getElementById('oct-up'),
+};
+
+function updateNudgeButtons() {
+    nudgeBtns.octDown.disabled = piano.range.min - 12 < 0;
+    nudgeBtns.semiDown.disabled = piano.range.min - 1 < 0;
+    nudgeBtns.semiUp.disabled = piano.range.max + 1 > 127;
+    nudgeBtns.octUp.disabled = piano.range.max + 12 > 127;
 }
 
+function nudge(delta) {
+    piano.shiftRange(delta);
+    // synth.allOff();
+    // piano.clearPressedNotes();
+    // activePointers.clear();
+    syncControls();
+    updateNudgeButtons();
+}
 
+nudgeBtns.octDown.addEventListener('click', () => nudge(-12));
+nudgeBtns.semiDown.addEventListener('click', () => nudge(-1));
+nudgeBtns.semiUp.addEventListener('click', () => nudge(1));
+nudgeBtns.octUp.addEventListener('click', () => nudge(12));
 
-document.getElementById('oct-down').addEventListener('click', () => nudge(-12));
-document.getElementById('semi-down').addEventListener('click', () => nudge(-1));
-document.getElementById('semi-up').addEventListener('click', () => nudge(1));
-document.getElementById('oct-up').addEventListener('click', () => nudge(12));
+syncControls();
+updateNudgeButtons();
 
 /* ===========================
    POINTER HANDLER
@@ -143,27 +171,37 @@ startBtn.addEventListener('click', async () => {
 // test tweaking the widget's range
 function modifyRangeSize(length) {
     const min = piano.range.min;
-    const newMax = piano.range.min + length;
-
-    synth.allOff();
-    piano.clearPressedNotes();
-    activePointers.clear();
-
+    const newMax = min + length;
+    // synth.allOff();
+    // piano.clearPressedNotes();
+    // activePointers.clear();
     piano.setRange(min, newMax);
-
-    updateRangeLabel();
+    syncControls();
+    updateNudgeButtons();
 }
 rangeLengthInput.addEventListener('input', () => {
-    const newLength = Number(rangeLengthInput.value);
-    modifyRangeSize(newLength);
+    modifyRangeSize(Number(rangeLengthInput.value));
+});
+
+rangeStartInput.addEventListener('input', () => {
+    const newMin = krsNumbin.value;
+    if (newMin === null) return;
+    const length = piano.range.max - piano.range.min;
+    const clampedMin = Math.min(newMin, 127 - length);
+    // synth.allOff();
+    // piano.clearPressedNotes();
+    // activePointers.clear();
+    piano.setRange(clampedMin, clampedMin + length);
+    syncControls();
+    updateNudgeButtons();
 });
 
 const kbOctaveSelect = document.getElementById('kb-octave');
 kbOctaveSelect.addEventListener('change', () => {
     const z = Number(kbOctaveSelect.value);
     kb.allOff();
-    piano.clearPressedNotes();
-    synth.allOff();
+    // piano.clearPressedNotes();
+    // synth.allOff();
     activePointers.clear();
     kb.setZOctave(z);
     kb.setQOctave(z + 1);
@@ -171,8 +209,13 @@ kbOctaveSelect.addEventListener('change', () => {
 
 // ---------------------------------------------------------------
 // keyboard handling
-const kb = new KeyboardController({ 
-    ...makeKeyboardHandlers(piano, synth),    
-    zOctave: 3, qOctave: 4, 
+const kb = new KeyboardController({
+    ...makeKeyboardHandlers(piano, synth),
+    zOctave: 3, qOctave: 4,
 });
 // ---------------------------------------------------------------
+
+function updateDumbRow() {
+    dumbRowLeft.textContent = midiLabel(piano.range.min);
+    dumbRowRight.textContent = midiLabel(piano.range.max);
+}

@@ -49,13 +49,15 @@
                         <span class="row-label">Piano</span>
                         <div class="control-group">
                             <label for="num-keys">Number of keys</label>
-                            <div class="numbin" data-value="30" data-min="12" data-max="64" data-step="1">
+                            <div id="nb-num-keys" class="numbin" data-value="30" data-min="12" data-max="64" data-step="1">
                                 <input type="number" id="num-keys">
                             </div>
                         </div>
                         <div class="control-group">
                             <label for="keys-range-start">Starting Key</label>
-                            <input type="number" id="keys-range-start">
+                            <div class="numbin midi-numbin" id="nb-keys-range-start" data-value="60" data-min="0" data-max="127" data-step="1">
+                                <input type="number" id="keys-range-start">
+                            </div>
                         </div>
                     </div>
                     <div class="controls-row">
@@ -87,7 +89,7 @@
                     </div>
                 </div>
 
-                
+
                 <div id="container">
                     <!-- not a real nudge row just another row -->
                     <!-- although 2 dumb spans with space-between is almost it -->
@@ -116,8 +118,15 @@
     </div>
 
     <script type="module">
-        import { initNumbins } from "../_crckfx/numbin/Numbin.js"
-        initNumbins();
+        import { initAllNumbins, initNumbin } from "../_crckfx/numbin/Numbin.js";
+        import {MidiNumbin} from "../_crckfx/numbin/MidiNumbin.js";
+        // initAllNumbins();
+        const nb_keysRangeStart = document.getElementById('nb-keys-range-start');
+
+        initNumbin(document.getElementById('nb-num-keys'));
+        // initNumbin(document.getElementById('nb-keys-range-start'));
+        // const krsNumbin = new MidiNumbin(nb_keysRangeStart, {min: 0, max: 127});
+
     </script>
     <script type="module" src="./main.js"></script>
 </body>

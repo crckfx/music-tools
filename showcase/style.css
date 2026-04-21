@@ -5,23 +5,27 @@
 }
 
 
+
 .dumb-row {
     position: relative;
     /* same width as canvas, so it scrolls with it */
     display: flex;
-    height: 20px;
-    padding-bottom: 20px;
+    height: 24px;
+    padding-top: 4px;
 }
 
 .dumb-row .note {
     position: absolute;
-
+    box-sizing: border-box;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-dim);
 }
 
 .dumb-row .note::after {
-    background-color: red;
-    width: 4px;
-    height: 16px;
+    background-color: var(--accent);
+    width: 2px;
+    height: 12px;
     display: inline-flex;
     content: '';
     position: absolute;
