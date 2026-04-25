@@ -31,6 +31,7 @@ export class PianoWidget {
         dimBlackColor: '#888888', // color for out-of-scale black keys
         rangeMin: 48,
         rangeMax: 72,
+        drawEdgeNotes: true,
     };
 
     constructor(canvas, container, options = {}) {
@@ -173,8 +174,10 @@ export class PianoWidget {
         const endIsBlack = BLACK_PCS.has(this.range.max % 12);
 
         // Build full key range including compensating half-white if start is black
-        const buildMin = startIsBlack ? this.range.min - 1 : this.range.min;
-        const buildMax = endIsBlack ? this.range.max + 1 : this.range.max;
+        // const buildMin = startIsBlack ? this.range.min - 1 : this.range.min;
+        // const buildMax = endIsBlack ? this.range.max + 1 : this.range.max;
+        const buildMin = cfg.drawEdgeNotes && startIsBlack ? this.range.min - 1 : this.range.min;
+        const buildMax = cfg.drawEdgeNotes && endIsBlack   ? this.range.max + 1 : this.range.max;        
 
         // Count whites for width calculation
         let whiteCount = 0;
@@ -272,6 +275,10 @@ export class PianoWidget {
         const lastKey = allKeys.find(k => k.midi === this.range.max);
         this.container.style.setProperty('--start-key-cx', `${firstKey.x + firstKey.w / 2}px`);
         this.container.style.setProperty('--end-key-cx', `${lastKey.x + lastKey.w / 2}px`);
+
+        const allMidis = [...this.whiteKeys, ...this.blackKeys].map(k => k.midi);
+        this.drawnMin = Math.min(...allMidis);
+        this.drawnMax = Math.max(...allMidis);
     }
     /* ===========================
        POINTER SURFACE

@@ -1,6 +1,6 @@
 import { hexToGlow, shiftLightness } from "./colour.js";
 
-export const NOTE_NAMES = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+export const NOTE_NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
 
 export function midiLabel(midi) {
     const name = NOTE_NAMES[midi % 12];
@@ -44,7 +44,7 @@ export function makeKeyboardHandlers(piano, engine) {
 //  bright: one data point (tabs: +12.3); used as-is.
 //  glow:   every authored entry is accent at 0x2e/255 ≈ 18% opacity.
 //
-const DIM_L    = -22;
+const DIM_L = -22;
 const BRIGHT_L = +12;
 
 // ─── profiles ────────────────────────────────────────────────────────────────
@@ -63,7 +63,7 @@ export const app_profiles = {
         colors: { accent: '#4caf8a' },
     },
     showcase: {
-        colors: { accent: '#3478c5' },
+        colors: { accent: '#bb1e8c' },
         title: "PianoWidget",
     },
     synth: {
@@ -80,33 +80,35 @@ export function applyProfile(name) {
     const profile = app_profiles[name];
     if (!profile?.colors) return;
 
-    const c       = profile.colors;
-    const accent  = c.accent;
-    const root    = document.documentElement;
+    const c = profile.colors;
+    const accent = c.accent;
+    const root = document.documentElement;
 
-    const bright  = c.accentBright ?? shiftLightness(accent, BRIGHT_L);
-    const dim     = c.accentDim    ?? shiftLightness(accent, DIM_L);
-    const glow    = c.accentGlow   ?? hexToGlow(accent);
+    c.accentBright = c.accentBright ?? shiftLightness(accent, BRIGHT_L);
+    c.accentDim = c.accentDim ?? shiftLightness(accent, DIM_L);
+    c.accentGlow = c.accentGlow ?? hexToGlow(accent);
 
-    root.style.setProperty('--accent',        accent);
-    root.style.setProperty('--accent-bright', bright);
-    root.style.setProperty('--accent-dim',    dim);
-    root.style.setProperty('--accent-glow',   glow);
+    root.style.setProperty('--accent', accent);
+    root.style.setProperty('--accent-bright', c.accentBright);
+    root.style.setProperty('--accent-dim', c.accentDim);
+    root.style.setProperty('--accent-glow', c.accentGlow);
 }
 
 export function applyProfileToElement(el, name) {
     const profile = app_profiles[name];
     if (!profile?.colors) return;
 
-    const c      = profile.colors;
+    const c = profile.colors;
     const accent = c.accent;
 
-    const bright = c.accentBright ?? shiftLightness(accent, BRIGHT_L);
-    const dim    = c.accentDim    ?? shiftLightness(accent, DIM_L);
-    const glow   = c.accentGlow   ?? hexToGlow(accent);
+    c.accentBright = c.accentBright ?? shiftLightness(accent, BRIGHT_L);
+    c.accentDim = c.accentDim ?? shiftLightness(accent, DIM_L);
+    c.accentGlow = c.accentGlow ?? hexToGlow(accent);
 
-    el.style.setProperty('--accent',        accent);
-    el.style.setProperty('--accent-bright', bright);
-    el.style.setProperty('--accent-dim',    dim);
-    el.style.setProperty('--accent-glow',   glow);
+    el.style.setProperty('--accent', accent);
+    el.style.setProperty('--accent-bright', c.accentBright);
+    el.style.setProperty('--accent-dim', c.accentDim);
+    el.style.setProperty('--accent-glow', c.accentGlow);
+
+    console.log(c.accentBright);
 }

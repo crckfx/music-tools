@@ -281,6 +281,10 @@ html, body {
     box-shadow: 0 0 12px rgba(124,106,247,0.25);
 }
 
+.nudge-btn:disabled {
+    opacity: 0.3;
+}
+
 /* ===========================
    PIANO CONTAINER
 =========================== */

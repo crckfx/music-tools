@@ -9,6 +9,12 @@
     <link rel="stylesheet" href="../controls-panel.css">
     <link rel="stylesheet" href="./style.css">
     <link rel="stylesheet" href="./tabs.css">
+
+    <link rel="modulepreload" href="../core/global.js">
+    <script type="module">
+        import { applyProfileToElement } from '../core/global.js';
+        applyProfileToElement(document.getElementById('app'), 'tabs');
+    </script>    
 </head>
 
 <body>

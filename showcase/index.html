@@ -15,6 +15,7 @@
     <link rel="modulepreload" href="../core/global.js">
     <script type="module">
         import { applyProfileToElement } from '../core/global.js';
+        applyProfileToElement(document.getElementById('start-overlay'), 'showcase');
         applyProfileToElement(document.getElementById('app'), 'showcase');
     </script>
 </head>
@@ -43,7 +44,7 @@
         <main id="app-main">
             <div class="stage">
                 <div class="stage-glow"></div>
-
+                <!-- range controls -->
                 <div class="controls-panel">
                     <div class="controls-row">
                         <span class="row-label">Piano</span>
@@ -60,6 +61,7 @@
                             </div>
                         </div>
                     </div>
+                    <!-- keyboard controls -->
                     <div class="controls-row">
                         <span class="row-label">Keyboard</span>
                         <div class="controls-row">
@@ -76,8 +78,30 @@
                             </div>
                         </div>
                     </div>
+                    <!-- scale controls -->
+                    <div class="controls-row">
+                        <span class="row-label">Scale</span>
+                        <div class="control-group">
+                            <label for="scale-root">Root</label>
+                            <select id="scale-root"></select>
+                        </div>
+                        <div class="control-group">
+                            <label for="scale-type">Type</label>
+                            <select id="scale-type"></select>
+                        </div>
+                        <div class="control-group">
+                            <label>
+                                <input type="checkbox" id="scale-dim"> Dim non-scale
+                            </label>
+                        </div>
+                        <div class="control-group">
+                            <label>
+                                <input type="checkbox" id="scale-names" checked> Note names
+                            </label>
+                        </div>
+                    </div>                    
                 </div>
-
+                <!-- legacy nudge controls -->
                 <div class="nudge-row">
                     <div class="nudge-group">
                         <button class="nudge-btn" id="oct-down">−8va</button>
@@ -103,8 +127,8 @@
                     <div class="dumb-row">
                         <!-- these things actually spill onto the piano; 
                          it's a nice way to test their alignment -->
-                        <span class="note left">hi</span>
-                        <span class="note right">doug</span>
+                        <span class="note left"></span>
+                        <span class="note right"></span>
                     </div>
                     <canvas id="piano"></canvas>
                 </div>

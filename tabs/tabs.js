@@ -2,7 +2,7 @@ import { PianoWidget } from "../core/PianoWidget.js";
 import { MiniSynth } from "../core/MiniSynth.js";
 import { GUITAR_TUNINGS, SCALES } from "../core/data.js";
 import { KeyboardController } from "../core/KeyboardController.js";
-import { makeKeyboardHandlers, midiLabel, NOTE_NAMES } from "../core/global.js";
+import { app_profiles, makeKeyboardHandlers, midiLabel, NOTE_NAMES } from "../core/global.js";
 import { SamplerEngine } from "../core/sampler.js";
 
 /* ═══════════════════════════════════════════════════════════
@@ -44,9 +44,9 @@ const piano = new PianoWidget(canvas, container, {
     blackColor:    '#18181f',
     borderColor:   '#4a4a5a',
     borderWidth:   2.0,
-    pressColor:    css('--accent'),
-    markColor:     css('--accent'),
-    markRootColor: css('--accent-bright'),
+    pressColor:    app_profiles.tabs.colors.accent,
+    markColor:     app_profiles.tabs.colors.accent,
+    markRootColor: app_profiles.tabs.colors.accentBright,
     markTextColor: '#1a1200',
     dimWhiteColor: '#888888',
     dimBlackColor: '#888888',
