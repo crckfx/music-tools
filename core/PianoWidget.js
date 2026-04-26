@@ -32,6 +32,9 @@ export class PianoWidget {
         rangeMin: 48,
         rangeMax: 72,
         drawEdgeNotes: true,
+
+        rootStripHeight: 5,
+        rootColor: '#1a7bdb', // will be overridden by caller        
     };
 
     constructor(canvas, container, options = {}) {
@@ -49,6 +52,8 @@ export class PianoWidget {
         this.allowedNotes = null;   // null = all keys pass; Set = only these midi values are hittable
         this.dimmedNotes = new Set(); // purely visual: these keys render muted
         this.onKeyEvent = null;
+
+        this.rootNotes = new Set();
 
         if (this.config.touchAction) {
             this.canvas.style.touchAction = this.config.touchAction;
@@ -161,6 +166,11 @@ export class PianoWidget {
         return null;
     }
 
+    setRootNotes(notes) {
+        this.rootNotes = new Set(notes);
+        this.render();
+    }
+    
     /* ===========================
        BUILD KEYS & GEOMETRY
     =========================== */
@@ -186,9 +196,12 @@ export class PianoWidget {
         }
 
         // Adjust divisor: half-whites at black edges count as 0.5
+        // let divisor = whiteCount;
+        // if (startIsBlack) divisor -= 0.5;
+        // if (endIsBlack) divisor -= 0.5;
         let divisor = whiteCount;
-        if (startIsBlack) divisor -= 0.5;
-        if (endIsBlack) divisor -= 0.5;
+        if (cfg.drawEdgeNotes && startIsBlack) divisor -= 0.5;
+        if (cfg.drawEdgeNotes && endIsBlack)   divisor -= 0.5;
 
         const naturalWhiteWidth = containerWidth / divisor;
         const whiteWidth = Math.max(naturalWhiteWidth, cfg.minWhiteWidth);
@@ -345,6 +358,11 @@ export class PianoWidget {
                 );
             }
 
+            if (this.rootNotes.has(k.midi)) {
+                ctx.fillStyle = cfg.rootColor;
+                ctx.fillRect(k.x, k.y + k.h - cfg.rootStripHeight, k.w, cfg.rootStripHeight);
+            }
+
             ctx.strokeStyle = cfg.borderColor;
             ctx.lineWidth = cfg.borderWidth;
             ctx.strokeRect(k.x, k.y, k.w, k.h);
@@ -364,6 +382,11 @@ export class PianoWidget {
                     k.h - cfg.insetTop - cfg.insetBottom
                 );
             }
+
+            if (this.rootNotes.has(k.midi)) {
+                ctx.fillStyle = cfg.rootColor;
+                ctx.fillRect(k.x, k.y + k.h - cfg.rootStripHeight, k.w, cfg.rootStripHeight);
+            }            
         }
 
         // --- mark circles + labels (top layer) ---

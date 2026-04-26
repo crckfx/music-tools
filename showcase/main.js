@@ -38,7 +38,7 @@ const scaleRootSelect = document.getElementById('scale-root');
 const scaleTypeSelect = document.getElementById('scale-type');
 const scaleDimCheck   = document.getElementById('scale-dim');
 const scaleNamesCheck = document.getElementById('scale-names');
-
+const rootHighlightCheck= document.getElementById('root-highlight');
 
 /* ===========================
    WIDGET
@@ -64,6 +64,7 @@ const piano = new PianoWidget(canvas, container, {
     rangeMin: 48,
     rangeMax: 48 + Number(rangeLengthInput.value),
     // drawEdgeNotes: false,
+    rootColor: colors.accent,
 });
 
 /* ===========================
@@ -277,15 +278,19 @@ function syncScale() {
 
     piano.setMarkedRootNotes(showNames ? [...rootMidis] : []);
     piano.setMarkedNotes(showNames ? [...markedMidis] : []);
+    piano.setRootNotes(rootHighlightCheck.checked ? [...rootMidis] : []);
 
     if (dim) {
         const dimmed = [];
-        // for (let m = piano.range.min; m <= piano.range.max; m++) {
+        const allowedMidis = [];
         for (let m = piano.drawnMin; m <= piano.drawnMax; m++) {
             if (!markedMidis.has(m)) dimmed.push(m);
         }
+        for (let m = 0; m <= 127; m++) {
+            if (scalePCs.has(((m % 12) + 12) % 12)) allowedMidis.push(m);
+        }        
         piano.setDimmedNotes(dimmed);
-        piano.setAllowedNotes([...markedMidis]);
+        piano.setAllowedNotes(allowedMidis);
     } else {
         piano.setDimmedNotes([]);
         piano.setAllowedNotes(null);
@@ -295,6 +300,7 @@ scaleRootSelect.addEventListener('change', syncScale);
 scaleTypeSelect.addEventListener('change', syncScale);
 scaleNamesCheck.addEventListener('change', syncScale);
 scaleDimCheck.addEventListener('change', syncScale);
+rootHighlightCheck.addEventListener('change', syncScale);
 
 // init phase (after other things are done) ??
 randomiseScales();
